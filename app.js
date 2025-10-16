@@ -1,5 +1,6 @@
 import { fetchBaseMobData } from "./dataManager.js";
-import { renderMobCards, displayStatus, attachEventListeners } from "./ui.js";
+import { displayStatus, renderMobCards } from "./uiRender.js";
+import { attachEventListeners } from "./uiEvents.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
   displayStatus("データ読み込み中...");
