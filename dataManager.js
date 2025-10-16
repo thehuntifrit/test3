@@ -1,7 +1,7 @@
 // dataManager.js
 import { fetchAllMobStatus, saveMobStatus, subscribeMobStatus } from "./firestore.js";
 import { calculateRepop } from "./cal.js";
-import { globalState } from "./store.js";
+import { getState, setMobs } from "./store.js";
 
 async function loadMobStatus() {
   const mobStatusData = await fetchAllMobStatus();
@@ -9,7 +9,8 @@ async function loadMobStatus() {
 }
 
 function mergeMobStatusData(mobStatusDataMap) {
-  globalState.mobs = globalState.mobs.map(mob => {
+  const state = getState();
+  const updated = state.mobs.map(mob => {
     const mobData = mobStatusDataMap[mob.No];
     if (mobData) {
       mob = { ...mob, ...mobData };
@@ -17,6 +18,7 @@ function mergeMobStatusData(mobStatusDataMap) {
     mob.repopInfo = calculateRepop(mob);
     return mob;
   });
+  setMobs(updated);
 }
 
 function reportMobKill(mobId, statusObj) {
