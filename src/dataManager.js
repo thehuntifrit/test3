@@ -1,13 +1,9 @@
 // dataManager.js
-import { setUserId, setBaseMobData, setMobs } from "./store.js";
+import { setUserId, getState, setBaseMobData, setMobs } from "./store.js";
 import { filterAndRender, updateProgressBars } from "./uiRender.js";
 import { subscribeMobStatusDocs, subscribeMobLocations } from "./firestore.js";
 import { initializeAuth } from "./firebase.js";
 import { displayStatus } from "./utils.js";
-
-function requireStore() {
-  return require("./store.js");
-}
 
 const MOB_DATA_URL = "./mob_data.json";
 let progressInterval = null;
@@ -85,11 +81,6 @@ function startRealtime() {
   unsubscribes.push(unsubLoc);
 
   progressInterval = setInterval(updateProgressBars, 10000);
-}
-
-function requireStore() {
-  // dynamic import to avoid circular deps
-  return require("./store.js"); // if using bundler; else replace with await import in async context
 }
 
 async function setupApp() {
