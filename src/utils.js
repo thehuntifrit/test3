@@ -40,4 +40,13 @@ function debounce(func, wait) {
   };
 }
 
+function displayStatus(message, type = "info") {
+  const el = document.getElementById("status-message");
+  if (!el) return;
+  el.textContent = message;
+  el.className = `status ${type}`;
+  setTimeout(() => { el.textContent = ""; }, 5000);
+}
+export { displayStatus, ... };
+
 export { toJstAdjustedIsoString, formatDuration, formatLastKillTime, processText, debounce };
