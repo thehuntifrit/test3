@@ -4,6 +4,7 @@ import { filterAndRender } from "./uiRender.js";
 import { renderAreaFilterPanel, toggleAreaFilterPanel, sortAndRedistribute } from "./filter.js";
 import { openReportModal, closeReportModal, submitReport, toJstAdjustedIsoString } from "./modal.js";
 import { DOM, FILTER_TO_DATA_RANK_MAP } from "./uiShared.js";
+import { submitReport } from "./firestore.js";
 import { debounce } from "./utils.js";
 
 function attachEventListeners() {
@@ -141,5 +142,21 @@ function attachEventListeners() {
   // Resize
   window.addEventListener("resize", debounce(() => sortAndRedistribute(), 200));
 }
+
+DOMElements.reportSubmitBtn.addEventListener("click", () => {
+  const mobNo = parseInt(DOMElements.reportModal.dataset.mobNo, 10);
+  const timeISO = DOMElements.reportTimeInput.value;
+  const memo = DOMElements.reportMemoInput.value;
+  submitReport(mobNo, timeISO, memo);
+});
+
+DOMElements.mobList.addEventListener("click", e => {
+  if (e.target.classList.contains("crush-toggle")) {
+    const mobNo = parseInt(e.target.dataset.mobNo, 10);
+    const locationId = e.target.dataset.locationId;
+    const isCurrentlyCulled = e.target.classList.contains("culled");
+    toggleCrushStatus(mobNo, locationId, isCurrentlyCulled);
+  }
+});
 
 export { attachEventListeners };
