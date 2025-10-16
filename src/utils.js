@@ -47,6 +47,5 @@ function displayStatus(message, type = "info") {
   el.className = `status ${type}`;
   setTimeout(() => { el.textContent = ""; }, 5000);
 }
-export { displayStatus, ... };
 
-export { toJstAdjustedIsoString, formatDuration, formatLastKillTime, processText, debounce };
+export { displayStatus, toJstAdjustedIsoString, formatDuration, formatLastKillTime, processText, debounce };
