@@ -7,7 +7,12 @@ const state = {
   mobs: [],
   filter: JSON.parse(localStorage.getItem("huntFilterState")) || {
     rank: "ALL",
-    areaSets: { ALL: new Set() }
+    areaSets: {
+      S: new Set(),
+      A: new Set(),
+      F: new Set(),
+      ALL: new Set()
+    }
   },
   openMobCardNo: localStorage.getItem("openMobCardNo")
     ? parseInt(localStorage.getItem("openMobCardNo"), 10)
