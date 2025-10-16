@@ -1,31 +1,86 @@
 // filter.js
 import { getState } from "./store.js";
+import { DOM, FILTER_TO_DATA_RANK_MAP, EXPANSION_MAP } from "./uiShared.js";
+import { debounce } from "./utils.js";
+import { filterAndRender } from "./uiRender.js";
 
-const FILTER_TO_DATA_RANK_MAP = { FATE: "F", ALL: "ALL", S: "S", A: "A" };
+function renderAreaFilterPanel() {
+  DOM.areaFilterPanel.innerHTML = "";
+  const state = getState();
+  const uiRank = state.filter.rank;
+  const dataRank = FILTER_TO_DATA_RANK_MAP[uiRank] || uiRank;
 
-function applyFilters() {
-  const { mobs, filter } = getState();
-  const targetDataRank = FILTER_TO_DATA_RANK_MAP[filter.rank] || filter.rank;
+  const areas = state.mobs
+    .filter(m => (dataRank === "A" || dataRank === "F") ? (m.Rank === dataRank || m.Rank.startsWith("B")) : (m.Rank === dataRank))
+    .reduce((set, m) => {
+      const mobExpansion = m.Rank.startsWith("B")
+        ? state.mobs.find(x => x.No === m.related_mob_no)?.Expansion || m.Expansion
+        : m.Expansion;
+      if (mobExpansion) set.add(mobExpansion);
+      return set;
+    }, new Set());
 
-  const filtered = mobs.filter(mob => {
-    if (targetDataRank === "ALL") return true;
-    if (targetDataRank === "A") {
-      if (mob.Rank !== "A" && !mob.Rank.startsWith("B")) return false;
-    } else if (targetDataRank === "F") {
-      if (mob.Rank !== "F" && !mob.Rank.startsWith("B")) return false;
-    } else if (mob.Rank !== targetDataRank) {
-      return false;
-    }
-    const areaSet = filter.areaSets[filter.rank];
-    const mobExpansion = mob.Rank.startsWith("B")
-      ? mobs.find(m => m.No === mob.related_mob_no)?.Expansion || mob.Expansion
-      : mob.Expansion;
-    if (!areaSet || !(areaSet instanceof Set) || areaSet.size === 0) return true;
-    return areaSet.has(mobExpansion);
-  });
+  const currentSet = state.filter.areaSets[uiRank] instanceof Set ? state.filter.areaSets[uiRank] : new Set();
+  const isAllSelected = areas.size > 0 && currentSet.size === areas.size;
 
-  filtered.sort((a, b) => (b.repopInfo?.elapsedPercent || 0) - (a.repopInfo?.elapsedPercent || 0));
-  return filtered;
+  const allBtn = document.createElement("button");
+  allBtn.textContent = isAllSelected ? "全解除" : "全選択";
+  allBtn.className = `area-filter-btn px-3 py-1 text-xs rounded font-semibold transition ${isAllSelected ? "bg-red-500" : "bg-gray-500 hover:bg-gray-400"}`;
+  allBtn.dataset.area = "ALL";
+  DOM.areaFilterPanel.appendChild(allBtn);
+
+  Array.from(areas)
+    .sort((a, b) => {
+      const indexA = Object.values(EXPANSION_MAP).indexOf(a);
+      const indexB = Object.values(EXPANSION_MAP).indexOf(b);
+      return indexB - indexA;
+    })
+    .forEach(area => {
+      const btn = document.createElement("button");
+      const isSelected = currentSet.has(area);
+      btn.textContent = area;
+      btn.className = `area-filter-btn px-3 py-1 text-xs rounded font-semibold transition ${isSelected ? "bg-green-500" : "bg-gray-500 hover:bg-gray-400"}`;
+      btn.dataset.area = area;
+      DOM.areaFilterPanel.appendChild(btn);
+    });
 }
 
-export { applyFilters, FILTER_TO_DATA_RANK_MAP };
+function toggleAreaFilterPanel(forceClose = false) {
+  const state = getState();
+  if (state.filter.rank === "ALL") forceClose = true;
+  if (forceClose || DOM.areaFilterWrapper.classList.contains("open")) {
+    DOM.areaFilterWrapper.classList.remove("open");
+    DOM.areaFilterWrapper.classList.add("max-h-0", "opacity-0", "pointer-events-none");
+  } else {
+    DOM.areaFilterWrapper.classList.add("open");
+    DOM.areaFilterWrapper.classList.remove("max-h-0", "opacity-0", "pointer-events-none");
+    renderAreaFilterPanel();
+  }
+}
+
+const sortAndRedistribute = debounce(() => filterAndRender(), 200);
+
+function updateFilterUI() {
+  const state = getState();
+  const currentRankKeyForColor = FILTER_TO_DATA_RANK_MAP[state.filter.rank] || state.filter.rank;
+  DOM.rankTabs.querySelectorAll(".tab-button").forEach(btn => {
+    btn.classList.remove("bg-blue-800", "bg-red-800", "bg-yellow-800", "bg-indigo-800");
+    btn.classList.add("bg-gray-600");
+    if (btn.dataset.rank !== state.filter.rank) {
+      btn.dataset.clickCount = "0";
+    }
+    if (btn.dataset.rank === state.filter.rank) {
+      btn.classList.remove("bg-gray-600");
+      const rank = btn.dataset.rank;
+      btn.classList.add(
+        rank === "ALL" ? "bg-blue-800"
+        : currentRankKeyForColor === "S" ? "bg-red-800"
+        : currentRankKeyForColor === "A" ? "bg-yellow-800"
+        : currentRankKeyForColor === "F" ? "bg-indigo-800"
+        : "bg-gray-800"
+      );
+    }
+  });
+}
+
+export { renderAreaFilterPanel, toggleAreaFilterPanel, sortAndRedistribute, updateFilterUI };
