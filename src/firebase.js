@@ -1,8 +1,8 @@
 // firebase.js
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
-import { getFunctions } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-functions.js";
+import { initializeApp } from "firebase/app";
+import { getFirestore, collection, onSnapshot, addDoc } from "firebase/firestore";
+import { getAuth, onAuthStateChanged, signInAnonymously } from "firebase/auth";
+import { getFunctions, httpsCallable } from "firebase/functions";
 
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyDAYv5Qm0bfqbHhCLeNp6zjKMty2y7xIIY",
@@ -14,7 +14,7 @@ const FIREBASE_CONFIG = {
   measurementId: "G-J1KGFE15XP"
 };
 
-const app = initializeApp(FIREBASE_CONFIG);
+const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 const functions = getFunctions(app, "asia-northeast2");
