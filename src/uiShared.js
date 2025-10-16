@@ -2,9 +2,7 @@
 const RANK_COLORS = {
   S: { bg: 'bg-red-600', text: 'text-red-600', hex: '#dc2626', label: 'S' },
   A: { bg: 'bg-yellow-600', text: 'text-yellow-600', hex: '#ca8a04', label: 'A' },
-  F: { bg: 'bg-indigo-600', text: 'text-indigo-600', hex: '#4f46e5', label: 'FATE' },
-  B1: { bg: 'bg-blue-500', text: 'text-blue-500', hex: '#3e83c4', label: 'B1' },
-  B2: { bg: 'bg-red-500', text: 'text-red-500', hex: '#e16666', label: 'B2' }
+  F: { bg: 'bg-indigo-600', text: 'text-indigo-600', hex: '#4f46e5', label: 'F' },
 };
 
 const PROGRESS_CLASSES = {
