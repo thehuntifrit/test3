@@ -2,6 +2,7 @@
 import { applyFilters } from "./filter.js";
 import { calculateRepop } from "./cal.js";
 import { getState, EXPANSION_MAP } from "./store.js";
+import { toggleCrushStatus } from "./dataManager.js";
 
 const DOM = {
   masterContainer: document.getElementById("master-mob-container"),
@@ -47,6 +48,24 @@ function displayStatus(message, type = "loading") {
 function createMobCard(mob) {
   const repop = calculateRepop(mob);
 
+  // Bランク湧き潰しマップ（S/Aと関連付けられている場合のみ）
+  let spawnOverlayHTML = "";
+  if (mob.Rank.startsWith("B") && mob.related_mob_no) {
+    const relatedMob = getState().mobs.find(m => m.No === mob.related_mob_no);
+    if (relatedMob && relatedMob.spawn_cull_status) {
+      spawnOverlayHTML = `
+        <div class="map-content relative mt-2">
+          <img src="./maps/${mob.Area}.jpg" alt="${mob.Area}" class="w-full rounded" />
+          <div class="map-overlay absolute inset-0">
+            ${Object.entries(relatedMob.spawn_cull_status)
+              .map(([pointId, status]) => drawSpawnPoint(mob.No, pointId, status))
+              .join("")}
+          </div>
+        </div>
+      `;
+    }
+  }
+
   return `
     <div class="mob-card bg-gray-700 rounded-lg shadow-xl overflow-hidden cursor-pointer border border-gray-700 transition duration-150"
          data-mob-no="${mob.No}" data-rank="${mob.Rank}">
@@ -65,10 +84,41 @@ function createMobCard(mob) {
       <div class="expandable-panel hidden p-3">
         <button data-report-type="modal" data-mob-no="${mob.No}" class="px-3 py-1 bg-blue-600 rounded text-white">報告する</button>
         <button data-report-type="instant" data-mob-no="${mob.No}" class="px-3 py-1 bg-green-600 rounded text-white">即時報告</button>
+        ${spawnOverlayHTML}
       </div>
     </div>
   `;
 }
+
+// スポーンポイント描画
+function drawSpawnPoint(mobNo, pointId, status) {
+  const isCulled = status === "culled";
+  const isLastOne = status === "lastone";
+  const classes = ["spawn-point"];
+
+  if (isLastOne) {
+    classes.push("spawn-point-lastone", "color-lastone", "spawn-point-shadow-lastone");
+  } else if (isCulled) {
+    classes.push("spawn-point-sa", "culled-with-white-border");
+  } else {
+    classes.push("spawn-point-sa", "color-b1", "spawn-point-shadow-sa");
+  }
+
+  return `
+    <div class="${classes.join(" ")}"
+         style="top:${Math.random() * 90 + 5}%; left:${Math.random() * 90 + 5}%"
+         data-mob-no="${mobNo}"
+         data-point-id="${pointId}"
+         data-is-interactive="true"
+         onclick="window.handleSpawnPointClick(${mobNo}, '${pointId}', ${isCulled})">
+    </div>
+  `;
+}
+
+// グローバル関数としてクリック処理を登録
+window.handleSpawnPointClick = (mobNo, pointId, isCulled) => {
+  toggleCrushStatus(mobNo, pointId, isCulled);
+};
 
 // カードをカラムに分配
 function distributeCards(cards) {
@@ -106,7 +156,7 @@ function renderAreaFilterPanel() {
   });
 }
 
-// フィルタUI更新（タブの強調やパネル再描画）
+// フィルタUI更新
 function updateFilterUI() {
   const { filter } = getState();
   const rankTabs = document.querySelectorAll("#rank-tabs .tab-button");
