@@ -19,4 +19,16 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 const functions = getFunctions(app, "asia-northeast2");
 
-export { app, db, auth, functions, signInAnonymously, onAuthStateChanged };
+async function initializeAuth() {
+  return new Promise((resolve) => {
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        resolve(user.uid);
+      } else {
+        signInAnonymously(auth).catch(() => {}).then(() => {});
+      }
+    });
+  });
+}
+
+export { app, db, auth, functions, initializeAuth };
