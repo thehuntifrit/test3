@@ -9,8 +9,9 @@ function createMobCard(mob) {
   const rank = mob.Rank;
   const rankConfig = RANK_COLORS[rank] || RANK_COLORS.A;
   const rankLabel = rankConfig.label || rank;
-
-  const lastKillDisplay = formatLastKillTime(mob.last_kill_time);
+  
+  const progressText = mob.repopInfo?.timeRemaining || "Calculating...";
+    const lastKillDisplay = formatLastKillTime(mob.last_kill_time);
   const absFmt = { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tokyo' };
   const nextTimeDisplay = mob.repopInfo?.nextMinRepopDate ? new Intl.DateTimeFormat('ja-JP', absFmt).format(mob.repopInfo.nextMinRepopDate) : '未確定';
   const prevTimeDisplay = mob.last_kill_time > 0 ? new Intl.DateTimeFormat('ja-JP', absFmt).format(new Date(mob.last_kill_time * 1000)) : '未報告';
@@ -32,7 +33,7 @@ function createMobCard(mob) {
         mob.prev_kill_time
       )).join("")
     : "";
-
+  
   const cardHeaderHTML = `
     <div class="p-1.5 space-y-1 bg-gray-800/70" data-toggle="card-header">
       <div class="flex justify-between items-start space-x-2">
