@@ -1,172 +1,198 @@
 // uiRender.js
-import { applyFilters } from "./filter.js";
+
+import { getState } from "./store.js";
 import { calculateRepop } from "./cal.js";
-import { getState, EXPANSION_MAP } from "./store.js";
-import { toggleCrushStatus } from "./dataManager.js";
+import { processText, formatLastKillTime } from "./utils.js";
+import { RANK_COLORS, PROGRESS_CLASSES, FILTER_TO_DATA_RANK_MAP, DOM } from "./uiShared.js"; // 共有定数とDOM参照
 
-const DOM = {
-  masterContainer: document.getElementById("master-mob-container"),
-  colContainer: document.getElementById("column-container"),
-  cols: [
-    document.getElementById("column-1"),
-    document.getElementById("column-2"),
-    document.getElementById("column-3"),
-  ],
-  statusMessage: document.getElementById("status-message"),
-  areaFilterPanel: document.getElementById("area-filter-panel"),
-  areaFilterWrapper: document.getElementById("area-filter-wrapper"),
-};
-
-// ステータスメッセージ
-function displayStatus(message, type = "loading") {
-  DOM.statusMessage.classList.remove("hidden");
-  DOM.statusMessage.textContent = message;
-  DOM.statusMessage.className =
-    "fixed top-14 left-0 right-0 z-40 text-center py-1 text-sm transition-colors duration-300";
-
-  DOM.statusMessage.classList.remove(
-    "bg-red-700/80",
-    "bg-green-700/80",
-    "bg-blue-700/80",
-    "text-white"
-  );
-
-  if (type === "error") {
-    DOM.statusMessage.classList.add("bg-red-700/80", "text-white");
-  } else if (type === "success") {
-    DOM.statusMessage.classList.add("bg-green-700/80", "text-white");
-    setTimeout(() => {
-      DOM.statusMessage.textContent = "";
-      DOM.statusMessage.classList.add("hidden");
-    }, 3000);
-  } else {
-    DOM.statusMessage.classList.add("bg-blue-700/80", "text-white");
-  }
-}
-
-// モブカード生成
 function createMobCard(mob) {
-  const repop = calculateRepop(mob);
+  const rank = mob.Rank;
+  const rankConfig = RANK_COLORS[rank] || RANK_COLORS.A;
+  const rankLabel = rankConfig.label || rank;
 
-  // Bランク湧き潰しマップ（S/Aと関連付けられている場合のみ）
-  let spawnOverlayHTML = "";
-  if (mob.Rank.startsWith("B") && mob.related_mob_no) {
-    const relatedMob = getState().mobs.find(m => m.No === mob.related_mob_no);
-    if (relatedMob && relatedMob.spawn_cull_status) {
-      spawnOverlayHTML = `
-        <div class="map-content relative mt-2">
-          <img src="./maps/${mob.Area}.jpg" alt="${mob.Area}" class="w-full rounded" />
-          <div class="map-overlay absolute inset-0">
-            ${Object.entries(relatedMob.spawn_cull_status)
-              .map(([pointId, status]) => drawSpawnPoint(mob.No, pointId, status))
-              .join("")}
+  const lastKillDisplay = formatLastKillTime(mob.last_kill_time);
+  const absFmt = { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tokyo' };
+  const nextTimeDisplay = mob.repopInfo?.nextMinRepopDate ? new Intl.DateTimeFormat('ja-JP', absFmt).format(mob.repopInfo.nextMinRepopDate) : '未確定';
+  const prevTimeDisplay = mob.last_kill_time > 0 ? new Intl.DateTimeFormat('ja-JP', absFmt).format(new Date(mob.last_kill_time * 1000)) : '未報告';
+
+  const isExpandable = rank === "S" || rank === "A" || rank === "F";
+  const { openMobCardNo } = getState();
+  const isOpen = isExpandable && mob.No === openMobCardNo;
+
+  const isS_LastOne = rank === "S" && mob.spawn_points && mob.spawn_points.some(p => p.is_last_one && (p.mob_ranks.includes("S") || p.mob_ranks.includes("A")));
+  const spawnPointsHtml = (rank === "S" && mob.Map)
+    ? (mob.spawn_points ?? []).map(point => drawSpawnPoint(
+        point,
+        mob.spawn_cull_status,
+        mob.No,
+        mob.Rank,
+        point.is_last_one,
+        isS_LastOne,
+        mob.last_kill_time,
+        mob.prev_kill_time
+      )).join("")
+    : "";
+
+  const cardHeaderHTML = `
+    <div class="p-1.5 space-y-1 bg-gray-800/70" data-toggle="card-header">
+      <div class="flex justify-between items-start space-x-2">
+        <div class="flex flex-col flex-shrink min-w-0">
+          <div class="flex items-center space-x-2">
+            <span class="rank-icon ${rankConfig.bg} text-white text-xs font-bold px-2 py-0.5 rounded-full">${rankLabel}</span>
+            <span class="mob-name text-lg font-bold text-outline truncate max-w-xs md:max-w-[150px] lg:max-w-full">${mob.Name}</span>
           </div>
+          <span class="text-xs text-gray-400 mt-0.5">${mob.Area} (${mob.Expansion})</span>
         </div>
-      `;
-    }
-  }
+        <div class="flex-shrink-0 flex flex-col space-y-1 items-end" style="min-width: 120px;">
+          ${rank === 'A' || rank === 'F'
+            ? `<button data-report-type="instant" data-mob-no="${mob.No}" class="px-2 py-0.5 text-xs rounded bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-semibold transition">即時<br>報告</button>`
+            : `<button data-report-type="modal" data-mob-no="${mob.No}" class="px-2 py-0.5 text-xs rounded bg-green-500 hover:bg-green-400 text-gray-900 font-semibold transition">報告<br>する</button>`
+          }
+        </div>
+      </div>
+      <div class="progress-bar-wrapper h-4 rounded-full relative overflow-hidden transition-all duration-100 ease-linear">
+        <div class="progress-bar-bg absolute left-0 top-0 h-full rounded-full transition-all duration-100 ease-linear" style="width: 0;"></div>
+        <div class="progress-text absolute inset-0 flex items-center justify-center text-xs font-semibold" style="line-height: 1;">Calculating...</div>
+      </div>
+    </div>
+  `;
+
+  const expandablePanelHTML = isExpandable ? `
+    <div class="expandable-panel ${isOpen ? 'open' : ''}">
+      <div class="px-2 py-1 text-sm space-y-1.5">
+        <div class="flex justify-between items-start flex-wrap">
+          <div class="w-full font-semibold text-yellow-300">抽出条件</div>
+          <div class="w-full text-gray-300 mb-2">${processText(mob.Condition)}</div>
+          <div class="w-full text-right text-sm font-mono text-blue-300">次回: ${nextTimeDisplay}</div>
+          <div class="w-full text-right text-xs text-gray-400 mb-2">前回: ${prevTimeDisplay}</div>
+          <div class="w-full text-left text-sm text-gray-300 mb-2">Memo: ${mob.last_kill_memo || 'なし'}</div>
+          <div class="w-full text-left text-xs text-gray-400 border-t border-gray-600 pt-1">最終討伐報告: ${lastKillDisplay}</div>
+        </div>
+        ${mob.Map && rank === 'S' ? `
+          <div class="map-content py-1.5 flex justify-center relative">
+            <img src="./maps/${mob.Map}" alt="${mob.Area} Map" class="w-full h-auto rounded shadow-lg border border-gray-600">
+            <div class="map-overlay absolute inset-0" data-mob-no="${mob.No}">
+              ${spawnPointsHtml}
+            </div>
+          </div>
+        ` : ''}
+      </div>
+    </div>
+  ` : '';
 
   return `
     <div class="mob-card bg-gray-700 rounded-lg shadow-xl overflow-hidden cursor-pointer border border-gray-700 transition duration-150"
-         data-mob-no="${mob.No}" data-rank="${mob.Rank}">
-      <div class="p-3 flex justify-between items-center" data-toggle="card-header">
-        <div>
-          <h3 class="font-bold text-lg">${mob.Name}</h3>
-          <p class="text-sm text-gray-300">${mob.Area}</p>
-        </div>
-        <div class="text-right">
-          <p class="text-xs">${repop.timeRemaining}</p>
-        </div>
-      </div>
-      <div class="progress-bar-wrapper h-2 bg-gray-600">
-        <div class="progress-bar-bg h-2 transition-all duration-500"></div>
-      </div>
-      <div class="expandable-panel hidden p-3">
-        <button data-report-type="modal" data-mob-no="${mob.No}" class="px-3 py-1 bg-blue-600 rounded text-white">報告する</button>
-        <button data-report-type="instant" data-mob-no="${mob.No}" class="px-3 py-1 bg-green-600 rounded text-white">即時報告</button>
-        ${spawnOverlayHTML}
-      </div>
+         data-mob-no="${mob.No}" data-rank="${rank}">
+      ${cardHeaderHTML}
+      ${expandablePanelHTML}
     </div>
   `;
 }
 
-// スポーンポイント描画
-function drawSpawnPoint(mobNo, pointId, status) {
-  const isCulled = status === "culled";
-  const isLastOne = status === "lastone";
-  const classes = ["spawn-point"];
+function filterAndRender({ isInitialLoad = false } = {}) {
+  const state = getState();
+  const uiRank = state.filter.rank;
+  const dataRank = FILTER_TO_DATA_RANK_MAP[uiRank] || uiRank;
+  const areaSet = state.filter.areaSets[uiRank];
 
-  if (isLastOne) {
-    classes.push("spawn-point-lastone", "color-lastone", "spawn-point-shadow-lastone");
-  } else if (isCulled) {
-    classes.push("spawn-point-sa", "culled-with-white-border");
+  const filtered = state.mobs.filter(mob => {
+    if (dataRank === "ALL") return true;
+    if (dataRank === "A") {
+      if (mob.Rank !== "A" && !mob.Rank.startsWith("B")) return false;
+    } else if (dataRank === "F") {
+      if (mob.Rank !== "F" && !mob.Rank.startsWith("B")) return false;
+    } else if (mob.Rank !== dataRank) {
+      return false;
+    }
+    const mobExpansion = mob.Rank.startsWith("B")
+      ? state.mobs.find(m => m.No === mob.related_mob_no)?.Expansion || mob.Expansion
+      : mob.Expansion;
+
+    if (!areaSet || !(areaSet instanceof Set) || areaSet.size === 0) return true;
+    return areaSet.has(mobExpansion);
+  });
+
+  // ソート復活（表示の安定性のため、No昇順に統一。必要ならelapsedPercent優先へ切替可能）
+  filtered.sort((a, b) => a.No - b.No);
+
+  // DOM構築（文字列→要素）＋平文問題の回避
+  const frag = document.createDocumentFragment();
+  filtered.forEach(mob => {
+    const temp = document.createElement("div");
+    temp.innerHTML = createMobCard(mob);
+    frag.appendChild(temp.firstElementChild);
+  });
+
+  DOM.masterContainer.innerHTML = "";
+  DOM.masterContainer.appendChild(frag);
+  distributeCards();
+  updateFilterUI(); // タブ強調/クリックカウントの反映
+
+  if (isInitialLoad) {
+    // 初期レンダリング後に進捗バーを一度更新
+    updateProgressBars();
+  }
+}
+
+function distributeCards() {
+  const width = window.innerWidth;
+  const md = 768;
+  const lg = 1024;
+  let cols = 1;
+  if (width >= lg) {
+    cols = 3;
+    DOM.cols[2].classList.remove("hidden");
+  } else if (width >= md) {
+    cols = 2;
+    DOM.cols[2].classList.add("hidden");
   } else {
-    classes.push("spawn-point-sa", "color-b1", "spawn-point-shadow-sa");
+    cols = 1;
+    DOM.cols[2].classList.add("hidden");
   }
 
-  return `
-    <div class="${classes.join(" ")}"
-         style="top:${Math.random() * 90 + 5}%; left:${Math.random() * 90 + 5}%"
-         data-mob-no="${mobNo}"
-         data-point-id="${pointId}"
-         data-is-interactive="true"
-         onclick="window.handleSpawnPointClick(${mobNo}, '${pointId}', ${isCulled})">
-    </div>
-  `;
-}
-
-// グローバル関数としてクリック処理を登録
-window.handleSpawnPointClick = (mobNo, pointId, isCulled) => {
-  toggleCrushStatus(mobNo, pointId, isCulled);
-};
-
-// カードをカラムに分配
-function distributeCards(cards) {
   DOM.cols.forEach(col => (col.innerHTML = ""));
-  cards.forEach((cardHTML, i) => {
-    const colIndex = i % DOM.cols.length;
-    DOM.cols[colIndex].insertAdjacentHTML("beforeend", cardHTML);
+  const cards = Array.from(DOM.masterContainer.children);
+  cards.forEach((card, idx) => {
+    const target = idx % cols;
+    DOM.cols[target].appendChild(card);
   });
 }
 
-// フィルタ適用後に描画
-function renderMobCards() {
-  const filteredMobs = applyFilters();
-  const cards = filteredMobs.map(mob => createMobCard(mob));
-  distributeCards(cards);
-  updateFilterUI();
-}
+function updateProgressBars() {
+  const state = getState();
+  state.mobs = state.mobs.map(m => ({ ...m, repopInfo: calculateRepop(m) }));
 
-// エリアフィルタパネル描画
-function renderAreaFilterPanel() {
-  const { filter } = getState();
-  if (!DOM.areaFilterPanel) return;
+  document.querySelectorAll(".mob-card").forEach(card => {
+    const mobNo = parseInt(card.dataset.mobNo, 10);
+    const mob = state.mobs.find(m => m.No === mobNo);
+    if (!mob?.repopInfo) return;
 
-  DOM.areaFilterPanel.innerHTML = "";
+    const { elapsedPercent, timeRemaining, status } = mob.repopInfo;
+    const bar = card.querySelector(".progress-bar-bg");
+    const text = card.querySelector(".progress-text");
+    const wrapper = bar?.parentElement;
+    if (!bar || !text || !wrapper) return;
 
-  Object.entries(EXPANSION_MAP).forEach(([key, label]) => {
-    const checked = filter.areaSets[filter.rank]?.has(label) ? "checked" : "";
-    const checkbox = `
-      <label class="flex items-center space-x-2 text-sm text-white">
-        <input type="checkbox" data-expansion="${label}" ${checked} />
-        <span>${label}</span>
-      </label>
-    `;
-    DOM.areaFilterPanel.insertAdjacentHTML("beforeend", checkbox);
+    bar.style.width = `${elapsedPercent}%`;
+    text.textContent = timeRemaining;
+
+    bar.classList.remove(PROGRESS_CLASSES.P0_60, PROGRESS_CLASSES.P60_80, PROGRESS_CLASSES.P80_100);
+    text.classList.remove(PROGRESS_CLASSES.TEXT_NEXT, PROGRESS_CLASSES.TEXT_POP);
+    wrapper.classList.remove(PROGRESS_CLASSES.MAX_OVER_BLINK);
+
+    if (status === "PopWindow") {
+      if (elapsedPercent <= 60) bar.classList.add(PROGRESS_CLASSES.P0_60);
+      else if (elapsedPercent <= 80) bar.classList.add(PROGRESS_CLASSES.P60_80);
+      else bar.classList.add(PROGRESS_CLASSES.P80_100);
+      text.classList.add(PROGRESS_CLASSES.TEXT_POP);
+    } else if (status === "MaxOver") {
+      bar.classList.add(PROGRESS_CLASSES.P80_100);
+      text.classList.add(PROGRESS_CLASSES.TEXT_POP);
+      wrapper.classList.add(PROGRESS_CLASSES.MAX_OVER_BLINK);
+    } else {
+      text.classList.add(PROGRESS_CLASSES.TEXT_NEXT);
+    }
   });
 }
 
-// フィルタUI更新
-function updateFilterUI() {
-  const { filter } = getState();
-  const rankTabs = document.querySelectorAll("#rank-tabs .tab-button");
-
-  rankTabs.forEach(btn => {
-    const rank = btn.dataset.rank;
-    btn.dataset.clickCount = rank === filter.rank ? "1" : "0";
-  });
-
-  renderAreaFilterPanel();
-}
-
-export { displayStatus, renderMobCards, updateFilterUI, DOM };
+export { filterAndRender, distributeCards, updateProgressBars, createMobCard };
