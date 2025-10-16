@@ -1,4 +1,5 @@
-import { globalMobData } from "./dataManager.js";
+// uiRender.js
+import { applyFilters } from "./filter.js";
 import { calculateRepop } from "./cal.js";
 
 const DOM = {
@@ -13,7 +14,8 @@ function displayStatus(message, type = "info") {
 
 function renderMobCards() {
   DOM.container.innerHTML = "";
-  globalMobData.forEach(mob => {
+  const filteredMobs = applyFilters();
+  filteredMobs.forEach(mob => {
     mob.repopInfo = calculateRepop(mob);
     const card = document.createElement("div");
     card.className = "mob-card";
