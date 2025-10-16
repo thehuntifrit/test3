@@ -40,7 +40,6 @@ function startRealtime() {
 
   // Subscribe mob_status docs
   const unsubStatus = subscribeMobStatusDocs(mobStatusDataMap => {
-    const { getState, setMobs } = requireStore();
     const current = getState().mobs;
     const map = new Map();
     Object.values(mobStatusDataMap).forEach(docData => {
@@ -65,7 +64,6 @@ function startRealtime() {
 
   // Subscribe mob_locations
   const unsubLoc = subscribeMobLocations(locationsMap => {
-    const { getState, setMobs } = requireStore();
     const current = getState().mobs;
     const merged = current.map(m => {
       const dyn = locationsMap[m.No];
