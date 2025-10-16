@@ -12,7 +12,8 @@ function attachEventListeners() {
   document.getElementById("rank-tabs").addEventListener("click", e => {
     const btn = e.target.closest(".tab-button");
     if (!btn) return;
-    const newRank = btn.dataset.rank;
+    const newRank = btn.dataset.rank.toUpperCase();
+    setFilter({ rank: newRank });
     let clickCount = parseInt(btn.dataset.clickCount || 0, 10);
 
     const prevRank = filter.rank;
