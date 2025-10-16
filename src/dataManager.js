@@ -5,6 +5,10 @@ import { subscribeMobStatusDocs, subscribeMobLocations } from "./firestore.js";
 import { initializeAuth } from "./firebase.js";
 import { displayStatus } from "./utils.js";
 
+function requireStore() {
+  return require("./store.js");
+}
+
 const MOB_DATA_URL = "./mob_data.json";
 let progressInterval = null;
 let unsubscribes = [];
