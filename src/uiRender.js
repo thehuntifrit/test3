@@ -1,8 +1,9 @@
 // uiRender.js
 import { getState } from "./store.js";
 import { calculateRepop } from "./cal.js";
-import { drawSpawnPoint, updateFilterUI, processText, formatLastKillTime } from "./utils.js";
+import { drawSpawnPoint, processText, formatLastKillTime } from "./utils.js";
 import { RANK_COLORS, PROGRESS_CLASSES, FILTER_TO_DATA_RANK_MAP, DOM } from "./uiShared.js"; // 共有定数とDOM参照
+import { updateFilterUI } from "./filter.js";
 
 function createMobCard(mob) {
   const rank = mob.Rank;
