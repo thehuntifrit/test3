@@ -1,33 +1,31 @@
 // filter.js
 import { getState } from "./store.js";
-import { includesIgnoreCase } from "./utils.js";
 
-// ランクフィルタ
-function filterByRank(mobs, rank) {
-  if (rank === "ALL") return mobs;
-  return mobs.filter(mob => mob.Rank === rank);
-}
+const FILTER_TO_DATA_RANK_MAP = { FATE: "F", ALL: "ALL", S: "S", A: "A" };
 
-// 名前フィルタ
-function filterByName(mobs, keyword) {
-  if (!keyword) return mobs;
-  return mobs.filter(mob => includesIgnoreCase(mob.Name, keyword));
-}
-
-// エリアセットフィルタ（例: expansionごと）
-function filterByAreaSets(mobs, areaSets) {
-  if (!areaSets || Object.keys(areaSets).length === 0) return mobs;
-  return mobs.filter(mob => areaSets[mob.Expansion]);
-}
-
-// 総合フィルタ
 function applyFilters() {
   const { mobs, filter } = getState();
-  let result = [...mobs];
-  result = filterByRank(result, filter.rank);
-  result = filterByName(result, filter.name);
-  result = filterByAreaSets(result, filter.areaSets);
-  return result;
+  const targetDataRank = FILTER_TO_DATA_RANK_MAP[filter.rank] || filter.rank;
+
+  const filtered = mobs.filter(mob => {
+    if (targetDataRank === "ALL") return true;
+    if (targetDataRank === "A") {
+      if (mob.Rank !== "A" && !mob.Rank.startsWith("B")) return false;
+    } else if (targetDataRank === "F") {
+      if (mob.Rank !== "F" && !mob.Rank.startsWith("B")) return false;
+    } else if (mob.Rank !== targetDataRank) {
+      return false;
+    }
+    const areaSet = filter.areaSets[filter.rank];
+    const mobExpansion = mob.Rank.startsWith("B")
+      ? mobs.find(m => m.No === mob.related_mob_no)?.Expansion || mob.Expansion
+      : mob.Expansion;
+    if (!areaSet || !(areaSet instanceof Set) || areaSet.size === 0) return true;
+    return areaSet.has(mobExpansion);
+  });
+
+  filtered.sort((a, b) => (b.repopInfo?.elapsedPercent || 0) - (a.repopInfo?.elapsedPercent || 0));
+  return filtered;
 }
 
-export { applyFilters };
+export { applyFilters, FILTER_TO_DATA_RANK_MAP };
