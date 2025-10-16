@@ -1,11 +1,10 @@
-import { fetchBaseMobData } from "./dataManager.js";
-import { displayStatus, renderMobCards } from "./uiRender.js";
+// app.js
+import { setupAuthentication } from "./dataManager.js";
 import { attachEventListeners } from "./uiEvents.js";
+import { displayStatus } from "./uiRender.js";
 
-document.addEventListener("DOMContentLoaded", async () => {
-  displayStatus("データ読み込み中...");
-  await fetchBaseMobData("./mob_data.json");
-  renderMobCards();
+document.addEventListener("DOMContentLoaded", () => {
+  displayStatus("アプリを初期化中...", "loading");
   attachEventListeners();
-  displayStatus("準備完了", "success");
+  setupAuthentication();
 });
