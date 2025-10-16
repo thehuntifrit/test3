@@ -1,87 +1,115 @@
 // uiEvents.js
-import { openReportModal, closeReportModal, MODAL } from "./modal.js";
-import { toJstAdjustedIsoString } from "./utils.js";
-import { submitReport } from "./dataManager.js";
 import { getState, setFilter, setOpenMobCardNo } from "./store.js";
-import { renderMobCards, updateFilterUI } from "./uiRender.js";
+import { filterAndRender } from "./uiRender.js";
+import { renderAreaFilterPanel, toggleAreaFilterPanel, sortAndRedistribute } from "./filter.js";
+import { openReportModal, closeReportModal, submitReport, toJstAdjustedIsoString } from "./modal.js";
+import { DOM, FILTER_TO_DATA_RANK_MAP } from "./uiShared.js";
+import { debounce } from "./utils.js";
 
 function attachEventListeners() {
-  const { filter } = getState();
-
-  // ランクタブ操作
-  document.getElementById("rank-tabs").addEventListener("click", e => {
+  // Rank tabs
+  DOM.rankTabs.addEventListener("click", e => {
     const btn = e.target.closest(".tab-button");
     if (!btn) return;
     const newRank = btn.dataset.rank.toUpperCase();
-    setFilter({ rank: newRank });
+    const state = getState();
     let clickCount = parseInt(btn.dataset.clickCount || 0, 10);
 
-    const prevRank = filter.rank;
-    if (newRank !== prevRank) {
-      setFilter({ rank: newRank });
+    if (newRank !== state.filter.rank) {
+      setFilter({
+        rank: newRank,
+        areaSets: {
+          ...state.filter.areaSets,
+          [newRank]: state.filter.areaSets[newRank] instanceof Set ? state.filter.areaSets[newRank] : new Set()
+        }
+      });
       clickCount = 1;
-      document.getElementById("area-filter-wrapper").classList.remove("open");
+      toggleAreaFilterPanel(true);
+      filterAndRender({ isInitialLoad: true });
     } else {
       if (newRank === "ALL") {
-        document.getElementById("area-filter-wrapper").classList.remove("open");
+        toggleAreaFilterPanel(true);
         clickCount = 0;
       } else {
         clickCount = (clickCount % 3) + 1;
-        const wrapper = document.getElementById("area-filter-wrapper");
-        if (clickCount === 2) wrapper.classList.add("open");
+        if (clickCount === 2) toggleAreaFilterPanel(false);
         else if (clickCount === 3) {
-          wrapper.classList.remove("open");
+          toggleAreaFilterPanel(true);
           clickCount = 0;
         }
       }
     }
-    btn.dataset.clickCount = clickCount;
-    renderMobCards(); // タブ切り替え後に再描画
+    btn.dataset.clickCount = String(clickCount);
   });
 
-  // エリアフィルタチェックボックス操作
-  document.getElementById("area-filter-panel").addEventListener("change", e => {
-    if (e.target.tagName === "INPUT" && e.target.type === "checkbox") {
-      const expansion = e.target.dataset.expansion;
-      const { filter } = getState();
-      const set = filter.areaSets[filter.rank] || new Set();
+  // Area filter
+  DOM.areaFilterPanel.addEventListener("click", e => {
+    const btn = e.target.closest(".area-filter-btn");
+    if (!btn) return;
+    const state = getState();
+    const uiRank = state.filter.rank;
+    const dataRank = FILTER_TO_DATA_RANK_MAP[uiRank] || uiRank;
+    const currentSet = state.filter.areaSets[uiRank] instanceof Set ? state.filter.areaSets[uiRank] : new Set();
 
-      if (e.target.checked) {
-        set.add(expansion);
-      } else {
-        set.delete(expansion);
-      }
-
-      setFilter({
-        areaSets: { ...filter.areaSets, [filter.rank]: set }
-      });
-
-      renderMobCards(); // チェック変更後に再描画
+    if (btn.dataset.area === "ALL") {
+      const allAreas = Array.from(
+        state.mobs
+          .filter(m => (dataRank === "A" || dataRank === "F") ? (m.Rank === dataRank || m.Rank.startsWith("B")) : (m.Rank === dataRank))
+          .reduce((set, m) => {
+            const mobExpansion = m.Rank.startsWith("B")
+              ? state.mobs.find(x => x.No === m.related_mob_no)?.Expansion || m.Expansion
+              : m.Expansion;
+            if (mobExpansion) set.add(mobExpansion);
+            return set;
+          }, new Set())
+      );
+      const nextSet = (currentSet.size === allAreas.length) ? new Set() : new Set(allAreas);
+      setFilter({ areaSets: { ...state.filter.areaSets, [uiRank]: nextSet } });
+    } else {
+      const area = btn.dataset.area;
+      if (currentSet.has(area)) currentSet.delete(area);
+      else currentSet.add(area);
+      setFilter({ areaSets: { ...state.filter.areaSets, [uiRank]: new Set(currentSet) } });
     }
+
+    renderAreaFilterPanel();
+    sortAndRedistribute(); // debounce内でfilterAndRenderが呼ばれる
   });
 
-  // カードクリック（報告ボタン・パネル開閉）
-  document.getElementById("column-container").addEventListener("click", e => {
+  // Column container delegation (report/map/card header)
+  DOM.colContainer.addEventListener("click", e => {
     const card = e.target.closest(".mob-card");
     if (!card) return;
     const mobNo = parseInt(card.dataset.mobNo, 10);
     const rank = card.dataset.rank;
 
+    // Report buttons
     const reportBtn = e.target.closest("button[data-report-type]");
     if (reportBtn) {
       e.stopPropagation();
-      const reportType = reportBtn.dataset.reportType;
-      if (reportType === "modal") {
+      const type = reportBtn.dataset.reportType;
+      if (type === "modal") {
         openReportModal(mobNo);
-      } else if (reportType === "instant") {
-        const timeISO = toJstAdjustedIsoString(new Date());
-        submitReport(mobNo, timeISO, `${rank}ランク即時報告`);
+      } else if (type === "instant") {
+        const iso = toJstAdjustedIsoString(new Date());
+        submitReport(mobNo, iso, `${rank}ランク即時報告`);
       }
       return;
     }
 
-    // 展開パネルの開閉
-    if (e.target.closest('[data-toggle="card-header"]')) {
+    // Spawn point toggle
+    const point = e.target.closest(".spawn-point");
+    if (point && point.dataset.isInteractive === "true") {
+      e.preventDefault();
+      e.stopPropagation();
+      const locationId = point.dataset.locationId;
+      const isCurrentlyCulled = point.dataset.isCulled === "true";
+      toggleCrushStatus(mobNo, locationId, isCurrentlyCulled);
+      return;
+    }
+
+    // Expand/collapse
+    if (e.target.closest("[data-toggle='card-header']")) {
       if (rank === "S" || rank === "A" || rank === "F") {
         const panel = card.querySelector(".expandable-panel");
         if (panel) {
@@ -100,20 +128,18 @@ function attachEventListeners() {
     }
   });
 
-  // モーダルキャンセル
-  MODAL.cancelBtn?.addEventListener("click", closeReportModal);
-
-  // モーダル送信
-  MODAL.reportForm?.addEventListener("submit", e => {
+  // Modal cancel and submit
+  document.getElementById("cancel-report").addEventListener("click", closeReportModal);
+  DOM.reportForm.addEventListener("submit", e => {
     e.preventDefault();
-    const mobNo = parseInt(MODAL.reportForm.dataset.mobNo, 10);
-    const datetime = MODAL.modalTimeInput.value;
-    const memo = MODAL.modalMemoInput.value;
+    const mobNo = parseInt(DOM.reportForm.dataset.mobNo, 10);
+    const datetime = DOM.modalTimeInput.value;
+    const memo = DOM.modalMemoInput.value;
     submitReport(mobNo, datetime, memo);
   });
 
-  // 初期UI更新
-  updateFilterUI();
+  // Resize
+  window.addEventListener("resize", debounce(() => sortAndRedistribute(), 200));
 }
 
 export { attachEventListeners };
