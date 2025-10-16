@@ -1,17 +1,17 @@
 // app.js
-import { setupAuthentication } from "./dataManager.js";
+import { setupApp } from "./dataManager.js";
 import { attachEventListeners } from "./uiEvents.js";
-import { displayStatus, renderMobCards } from "./uiRender.js";
+import { DOM } from "./uiShared.js";
 
 document.addEventListener("DOMContentLoaded", () => {
-  displayStatus("アプリを初期化中...", "loading");
-
-  // UIイベントを先にバインド
   attachEventListeners();
 
-  // Firebase認証 & データ購読開始
-  setupAuthentication();
+  // 初期タブのclickCount整備（localStorage復元に合わせる）
+  DOM.rankTabs.querySelectorAll(".tab-button").forEach(btn => {
+    // 復元rankと一致するものは1、それ以外は0
+    const currentRank = JSON.parse(localStorage.getItem("huntFilterState"))?.rank || "ALL";
+    btn.dataset.clickCount = btn.dataset.rank === currentRank ? "1" : "0";
+  });
 
-  // 初期描画（空でもOK、購読後に更新される）
-  renderMobCards();
+  setupApp();
 });
