@@ -1,36 +1,34 @@
 // modal.js
-const DOM = {
-  modal: document.getElementById("mob-modal"),
-  modalTitle: document.querySelector("#mob-modal .modal-title"),
-  modalContent: document.querySelector("#mob-modal .modal-content"),
-  modalClose: document.getElementById("modal-close")
+import { toJstAdjustedIsoString } from "./utils.js";
+import { getMobByNo } from "./store.js";
+
+const MODAL = {
+  reportModal: document.getElementById("report-modal"),
+  reportForm: document.getElementById("report-form"),
+  modalMobName: document.getElementById("modal-mob-name"),
+  modalStatus: document.getElementById("modal-status"),
+  modalTimeInput: document.getElementById("report-datetime"),
+  modalMemoInput: document.getElementById("report-memo"),
+  cancelBtn: document.getElementById("cancel-report"),
 };
 
-// 開く
-function openModal(mob) {
-  if (!DOM.modal) return;
-  DOM.modal.classList.remove("hidden");
-  if (DOM.modalTitle) DOM.modalTitle.textContent = mob.Name;
-  if (DOM.modalContent) {
-    DOM.modalContent.innerHTML = `
-      <p>ランク: ${mob.Rank}</p>
-      <p>エリア: ${mob.Expansion}</p>
-      <p>状態: ${mob.repopInfo?.status || "不明"}</p>
-    `;
-  }
+function openReportModal(mobNo) {
+  const mob = getMobByNo(mobNo);
+  if (!mob) return;
+  const isoString = toJstAdjustedIsoString(new Date());
+  MODAL.reportForm.dataset.mobNo = mobNo;
+  MODAL.modalMobName.textContent = `対象: ${mob.Name} (${mob.Area})`;
+  MODAL.modalTimeInput.value = isoString;
+  MODAL.modalMemoInput.value = mob.last_kill_memo || "";
+  MODAL.modalMemoInput.placeholder = `LKTとして記録されます。例: ${mob.Area} (X:00.0, Y:00.0) // ログアウトします`;
+  MODAL.modalStatus.textContent = "";
+  MODAL.reportModal.classList.remove("hidden");
+  MODAL.reportModal.classList.add("flex");
 }
 
-// 閉じる
-function closeModal() {
-  if (!DOM.modal) return;
-  DOM.modal.classList.add("hidden");
+function closeReportModal() {
+  MODAL.reportModal.classList.add("hidden");
+  MODAL.reportModal.classList.remove("flex");
 }
 
-// 初期化（閉じるボタンにイベント付与）
-function initModal() {
-  if (DOM.modalClose) {
-    DOM.modalClose.addEventListener("click", closeModal);
-  }
-}
-
-export { openModal, closeModal, initModal };
+export { MODAL, openReportModal, closeReportModal };
