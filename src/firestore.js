@@ -1,47 +1,31 @@
 // firestore.js
-import { db, functions } from "./firebase.js";
-import {
-  collection, onSnapshot, doc, addDoc
-} from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
-import { httpsCallable } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-functions.js";
+import { db } from "./firebase.js";
+import { collection, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
-const callUpdateCrushStatus = httpsCallable(functions, "crushStatusUpdater");
-
-function subscribeMobStatusDocs(docIds, onData, onError) {
-  const unsubscribes = docIds.map(docId => {
-    const ref = doc(db, "mob_status", docId);
-    return onSnapshot(ref, snap => {
+function subscribeMobStatusDocs(onUpdate) {
+  const docIds = ["s_latest", "a_latest", "f_latest"];
+  const mobStatusDataMap = {};
+  const unsubs = docIds.map(id =>
+    onSnapshot(doc(db, "mob_status", id), snap => {
       const data = snap.data();
-      onData(docId, data || {});
-    }, onError);
-  });
-  return () => unsubscribes.forEach(u => u());
+      if (data) mobStatusDataMap[id] = data;
+      onUpdate(mobStatusDataMap);
+    })
+  );
+  return () => unsubs.forEach(u => u());
 }
 
-function subscribeMobLocations(onData, onError) {
-  const ref = collection(db, "mob_locations");
-  return onSnapshot(ref, snapshot => {
-    const locationsMap = {};
+function subscribeMobLocations(onUpdate) {
+  const unsub = onSnapshot(collection(db, "mob_locations"), snapshot => {
+    const map = {};
     snapshot.forEach(docSnap => {
-      const data = docSnap.data();
       const mobNo = parseInt(docSnap.id, 10);
-      locationsMap[mobNo] = { points: data.points || {} };
+      const data = docSnap.data();
+      map[mobNo] = { points: data.points || {} };
     });
-    onData(locationsMap);
-  }, onError);
+    onUpdate(map);
+  });
+  return unsub;
 }
 
-async function submitReportDoc(payload) {
-  await addDoc(collection(db, "reports"), payload);
-}
-
-async function toggleCrushCloudFunction(params) {
-  return callUpdateCrushStatus(params);
-}
-
-export {
-  subscribeMobStatusDocs,
-  subscribeMobLocations,
-  submitReportDoc,
-  toggleCrushCloudFunction
-};
+export { subscribeMobStatusDocs, subscribeMobLocations };
