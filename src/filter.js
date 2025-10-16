@@ -1,7 +1,7 @@
 // filter.js
 import { getState } from "./store.js";
 import { EXPANSION_MAP } from "./store.js";
-import { DOM, FILTER_TO_DATA_RANK_MAP, EXPANSION_MAP } from "./uiShared.js";
+import { DOM, FILTER_TO_DATA_RANK_MAP } from "./uiShared.js";
 import { debounce } from "./utils.js";
 import { filterAndRender } from "./uiRender.js";
 
