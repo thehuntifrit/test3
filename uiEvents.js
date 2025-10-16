@@ -1,35 +1,20 @@
-import { currentFilter, saveFilterState } from "./dataManager.js";
+// uiEvents.js
+import { getState, setFilter } from "./store.js";
 import { renderMobCards } from "./uiRender.js";
 
-const DOM = {
-  modal: document.getElementById("mob-modal"),
-  modalClose: document.getElementById("modal-close"),
-  filterRank: document.getElementById("filter-rank"),
-  filterName: document.getElementById("filter-name")
-};
-
-function openModal(mob) {
-  DOM.modal.classList.remove("hidden");
-  DOM.modal.querySelector(".modal-title").textContent = mob.Name;
-}
-function closeModal() {
-  DOM.modal.classList.add("hidden");
-}
-
 function attachEventListeners() {
-  DOM.modalClose.addEventListener("click", closeModal);
+  const filterRank = document.getElementById("filter-rank");
+  const filterName = document.getElementById("filter-name");
 
-  DOM.filterRank.addEventListener("change", e => {
-    currentFilter.rank = e.target.value;
-    saveFilterState();
+  filterRank.addEventListener("change", e => {
+    setFilter({ rank: e.target.value });
     renderMobCards();
   });
 
-  DOM.filterName.addEventListener("input", e => {
-    currentFilter.name = e.target.value;
-    saveFilterState();
+  filterName.addEventListener("input", e => {
+    setFilter({ name: e.target.value });
     renderMobCards();
   });
 }
 
-export { openModal, closeModal, attachEventListeners };
+export { attachEventListeners };
