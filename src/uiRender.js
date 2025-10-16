@@ -92,10 +92,30 @@ function filterAndRender({ isInitialLoad = false } = {}) {
   const state = getState();
   const uiRank = state.filter.rank;
   const dataRank = FILTER_TO_DATA_RANK_MAP[uiRank] || uiRank;
-  const areaSet = state.filter.areaSets[uiRank];
+  const areaSets = state.filter.areaSets; // ランクごとのエリア選択を保持している想定
 
   const filtered = state.mobs.filter(mob => {
-    if (dataRank === "ALL") return true;
+    // --- ALL の場合 ---
+    if (dataRank === "ALL") {
+      // mob のランクに対応するエリアセットを取得
+      const mobRank = mob.Rank.startsWith("B")
+        ? (mob.Rank.includes("A") ? "A" : "F") // B系はA/Fに寄せる
+        : mob.Rank;
+
+      const areaSetForRank = areaSets[mobRank];
+      const mobExpansion = mob.Rank.startsWith("B")
+        ? state.mobs.find(m => m.No === mob.related_mob_no)?.Expansion || mob.Expansion
+        : mob.Expansion;
+
+      // そのランクでエリア選択が無ければ表示対象
+      if (!areaSetForRank || !(areaSetForRank instanceof Set) || areaSetForRank.size === 0) {
+        return true;
+      }
+      // 選択されているエリアに含まれていれば表示
+      return areaSetForRank.has(mobExpansion);
+    }
+
+    // --- A/F/S 単独ランクの場合 ---
     if (dataRank === "A") {
       if (mob.Rank !== "A" && !mob.Rank.startsWith("B")) return false;
     } else if (dataRank === "F") {
@@ -103,10 +123,12 @@ function filterAndRender({ isInitialLoad = false } = {}) {
     } else if (mob.Rank !== dataRank) {
       return false;
     }
+
     const mobExpansion = mob.Rank.startsWith("B")
       ? state.mobs.find(m => m.No === mob.related_mob_no)?.Expansion || mob.Expansion
       : mob.Expansion;
 
+    const areaSet = areaSets[uiRank];
     if (!areaSet || !(areaSet instanceof Set) || areaSet.size === 0) return true;
     return areaSet.has(mobExpansion);
   });
