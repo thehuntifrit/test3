@@ -103,7 +103,8 @@ function filterAndRender({ isInitialLoad = false } = {}) {
       const mobRank = mob.Rank.startsWith("B")
         ? (mob.Rank.includes("A") ? "A" : "F") // B系はA/Fに寄せる
         : mob.Rank;
-
+    if (!["S", "A", "F"].includes(mobRank)) return false;
+   
       const areaSetForRank = areaSets[mobRank];
       const mobExpansion = mob.Rank.startsWith("B")
         ? state.mobs.find(m => m.No === mob.related_mob_no)?.Expansion || mob.Expansion
