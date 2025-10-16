@@ -1,5 +1,5 @@
 // uiEvents.js
-import { getState, setFilter } from "./store.js";
+import { setFilter } from "./store.js";
 import { renderMobCards } from "./uiRender.js";
 
 function attachEventListeners() {
