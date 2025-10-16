@@ -14,7 +14,7 @@ function createMobCard(mob) {
   const nextTimeDisplay = mob.repopInfo?.nextMinRepopDate ? new Intl.DateTimeFormat('ja-JP', absFmt).format(mob.repopInfo.nextMinRepopDate) : '未確定';
   const prevTimeDisplay = mob.last_kill_time > 0 ? new Intl.DateTimeFormat('ja-JP', absFmt).format(new Date(mob.last_kill_time * 1000)) : '未報告';
 
-  const isExpandable = rank === "S" || rank === "A" || rank === "F";
+  const isExpandable = rank === "S";
   const { openMobCardNo } = getState();
   const isOpen = isExpandable && mob.No === openMobCardNo;
 
@@ -63,7 +63,6 @@ function createMobCard(mob) {
           <div class="w-full font-semibold text-yellow-300">抽出条件</div>
           <div class="w-full text-gray-300 mb-2">${processText(mob.Condition)}</div>
           <div class="w-full text-right text-sm font-mono text-blue-300">次回: ${nextTimeDisplay}</div>
-          <div class="w-full text-right text-xs text-gray-400 mb-2">前回: ${prevTimeDisplay}</div>
           <div class="w-full text-left text-sm text-gray-300 mb-2">Memo: ${mob.last_kill_memo || 'なし'}</div>
           <div class="w-full text-left text-xs text-gray-400 border-t border-gray-600 pt-1">最終討伐報告: ${lastKillDisplay}</div>
         </div>
