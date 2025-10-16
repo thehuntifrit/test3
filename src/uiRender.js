@@ -1,7 +1,7 @@
 // uiRender.js
 import { applyFilters } from "./filter.js";
 import { calculateRepop } from "./cal.js";
-import { getState } from "./store.js";
+import { getState, EXPANSION_MAP } from "./store.js";
 
 const DOM = {
   masterContainer: document.getElementById("master-mob-container"),
@@ -12,6 +12,8 @@ const DOM = {
     document.getElementById("column-3"),
   ],
   statusMessage: document.getElementById("status-message"),
+  areaFilterPanel: document.getElementById("area-filter-panel"),
+  areaFilterWrapper: document.getElementById("area-filter-wrapper"),
 };
 
 // ステータスメッセージ
@@ -82,6 +84,39 @@ function renderMobCards() {
   const filteredMobs = applyFilters();
   const cards = filteredMobs.map(mob => createMobCard(mob));
   distributeCards(cards);
+  updateFilterUI();
 }
 
-export { displayStatus, renderMobCards, DOM };
+// エリアフィルタパネル描画
+function renderAreaFilterPanel() {
+  const { filter } = getState();
+  if (!DOM.areaFilterPanel) return;
+
+  DOM.areaFilterPanel.innerHTML = "";
+
+  Object.entries(EXPANSION_MAP).forEach(([key, label]) => {
+    const checked = filter.areaSets[filter.rank]?.has(label) ? "checked" : "";
+    const checkbox = `
+      <label class="flex items-center space-x-2 text-sm text-white">
+        <input type="checkbox" data-expansion="${label}" ${checked} />
+        <span>${label}</span>
+      </label>
+    `;
+    DOM.areaFilterPanel.insertAdjacentHTML("beforeend", checkbox);
+  });
+}
+
+// フィルタUI更新（タブの強調やパネル再描画）
+function updateFilterUI() {
+  const { filter } = getState();
+  const rankTabs = document.querySelectorAll("#rank-tabs .tab-button");
+
+  rankTabs.forEach(btn => {
+    const rank = btn.dataset.rank;
+    btn.dataset.clickCount = rank === filter.rank ? "1" : "0";
+  });
+
+  renderAreaFilterPanel();
+}
+
+export { displayStatus, renderMobCards, updateFilterUI, DOM };
