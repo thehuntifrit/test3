@@ -1,46 +1,30 @@
+// dataManager.js
+import { fetchAllMobStatus, saveMobStatus, subscribeMobStatus } from "./firestore.js";
 import { calculateRepop } from "./cal.js";
+import { globalState } from "./store.js";
 
-let baseMobData = [];
-let globalMobData = [];
-let currentFilter = { rank: "ALL", name: "", areaSets: {} };
-
-async function fetchBaseMobData(url) {
-  const response = await fetch(url);
-  const data = await response.json();
-  baseMobData = data.mobConfig;
-  globalMobData = baseMobData.map(mob => ({
-    ...mob,
-    last_kill_time: 0,
-    prev_kill_time: 0,
-    last_kill_memo: "",
-    spawn_cull_status: {}
-  }));
-  return globalMobData;
+async function loadMobStatus() {
+  const mobStatusData = await fetchAllMobStatus();
+  mergeMobStatusData(mobStatusData);
 }
 
 function mergeMobStatusData(mobStatusDataMap) {
-  const newData = new Map();
-  Object.values(mobStatusDataMap).forEach(docData => {
-    Object.entries(docData).forEach(([mobId, mobData]) => {
-      newData.set(parseInt(mobId), {
-        last_kill_time: mobData.last_kill_time?.seconds || 0,
-        prev_kill_time: mobData.prev_kill_time?.seconds || 0,
-        last_kill_memo: mobData.last_kill_memo || ""
-      });
-    });
+  globalState.mobs = globalState.mobs.map(mob => {
+    const mobData = mobStatusDataMap[mob.No];
+    if (mobData) {
+      mob = { ...mob, ...mobData };
+    }
+    mob.repopInfo = calculateRepop(mob);
+    return mob;
   });
-  globalMobData = globalMobData.map(mob => {
-    let merged = { ...mob, ...newData.get(mob.No) };
-    merged.repopInfo = calculateRepop(merged);
-    return merged;
-  });
-  return globalMobData;
 }
 
-function saveFilterState() {
-  localStorage.setItem("filter_rank", currentFilter.rank);
-  localStorage.setItem("filter_name", currentFilter.name);
-  localStorage.setItem("filter_area_sets", JSON.stringify(currentFilter.areaSets));
+function reportMobKill(mobId, statusObj) {
+  return saveMobStatus(mobId, statusObj);
 }
 
-export { fetchBaseMobData, mergeMobStatusData, saveFilterState, globalMobData, currentFilter };
+function subscribeMobUpdates() {
+  return subscribeMobStatus(data => mergeMobStatusData(data));
+}
+
+export { loadMobStatus, reportMobKill, subscribeMobUpdates };
