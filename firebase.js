@@ -1,6 +1,6 @@
 // firebase.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 import { getFunctions } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-functions.js";
 
@@ -19,4 +19,4 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 const functions = getFunctions(app, "asia-northeast2");
 
-export { app, db, auth, functions };
+export { app, db, auth, functions, signInAnonymously, onAuthStateChanged };
