@@ -15,16 +15,22 @@ async function loadBaseMobData() {
   const data = await resp.json();
 
   const { EXPANSION_MAP } = await import("./store.js");
-  const baseMobData = data.mobConfig.map(mob => ({
-    ...mob,
-    Expansion: EXPANSION_MAP[Math.floor(mob.No / 10000)] || "Unknown",
-    REPOP_s: mob.REPOP,
-    MAX_s: mob.MAX,
+  const baseMobData = Object.entries(data.mobs).map(([no, mob]) => ({
+    No: parseInt(no, 10),
+    Rank: mob.rank,
+    Name: mob.name,
+    Area: mob.area,
+    Condition: mob.condition,
+    Expansion: EXPANSION_MAP[Math.floor(no / 10000)] || "Unknown",
+    REPOP_s: mob.repopSeconds,
+    MAX_s: mob.maxRepopSeconds,
+    Map: mob.mapImage,
+    spawn_points: mob.locations,
     last_kill_time: 0,
     prev_kill_time: 0,
     last_kill_memo: "",
     spawn_cull_status: {},
-    related_mob_no: mob.Rank.startsWith("B") ? mob.RelatedMobNo : null
+    related_mob_no: mob.rank.startsWith("B") ? mob.relatedMobNo : null
   }));
 
   setBaseMobData(baseMobData);
