@@ -114,3 +114,5 @@ export const toggleCrushStatus = async (mobNo, locationId, isCurrentlyCulled) =>
 };
 
 export { subscribeMobStatusDocs, subscribeMobLocations };
+export const submitReport = async (...) => { ... };
+export const toggleCrushStatus = async (...) => { ... };
