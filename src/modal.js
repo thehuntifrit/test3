@@ -1,34 +1,68 @@
 // modal.js
-import { toJstAdjustedIsoString } from "./utils.js";
-import { getMobByNo } from "./store.js";
+import { DOM } from "./uiShared.js";
+import { displayStatus } from "./utils.js";
+import { addDoc, collection } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+import { db } from "./firebase.js";
+import { getState } from "./store.js";
 
-const MODAL = {
-  reportModal: document.getElementById("report-modal"),
-  reportForm: document.getElementById("report-form"),
-  modalMobName: document.getElementById("modal-mob-name"),
-  modalStatus: document.getElementById("modal-status"),
-  modalTimeInput: document.getElementById("report-datetime"),
-  modalMemoInput: document.getElementById("report-memo"),
-  cancelBtn: document.getElementById("cancel-report"),
-};
+function toJstAdjustedIsoString(date) {
+  const offsetMs = date.getTimezoneOffset() * 60000;
+  const jstOffsetMs = 9 * 60 * 60 * 1000;
+  const jstTime = date.getTime() - offsetMs + jstOffsetMs;
+  return new Date(jstTime).toISOString().slice(0, 16);
+}
 
 function openReportModal(mobNo) {
-  const mob = getMobByNo(mobNo);
+  const mob = getState().mobs.find(m => m.No === mobNo);
   if (!mob) return;
-  const isoString = toJstAdjustedIsoString(new Date());
-  MODAL.reportForm.dataset.mobNo = mobNo;
-  MODAL.modalMobName.textContent = `対象: ${mob.Name} (${mob.Area})`;
-  MODAL.modalTimeInput.value = isoString;
-  MODAL.modalMemoInput.value = mob.last_kill_memo || "";
-  MODAL.modalMemoInput.placeholder = `LKTとして記録されます。例: ${mob.Area} (X:00.0, Y:00.0) // ログアウトします`;
-  MODAL.modalStatus.textContent = "";
-  MODAL.reportModal.classList.remove("hidden");
-  MODAL.reportModal.classList.add("flex");
+  const iso = toJstAdjustedIsoString(new Date());
+  DOM.reportForm.dataset.mobNo = String(mobNo);
+  DOM.modalMobName.textContent = `対象: ${mob.Name} (${mob.Area})`;
+  DOM.modalTimeInput.value = iso;
+  DOM.modalMemoInput.value = mob.last_kill_memo || "";
+  DOM.modalMemoInput.placeholder = `LKTとして記録されます。例: ${mob.Area} (X:00.0, Y:00.0) // ログアウトします`;
+  DOM.modalStatus.textContent = "";
+  DOM.reportModal.classList.remove("hidden");
+  DOM.reportModal.classList.add("flex");
 }
 
 function closeReportModal() {
-  MODAL.reportModal.classList.add("hidden");
-  MODAL.reportModal.classList.remove("flex");
+  DOM.reportModal.classList.add("hidden");
+  DOM.reportModal.classList.remove("flex");
 }
 
-export { MODAL, openReportModal, closeReportModal };
+async function submitReport(mobNo, timeISO, memo) {
+  const { userId, mobs } = getState();
+  if (!userId) {
+    displayStatus("認証が完了していません。ページをリロードしてください。", "error");
+    return;
+  }
+  const mob = mobs.find(m => m.No === mobNo);
+  if (!mob) {
+    displayStatus("モブデータが見つかりません。", "error");
+    return;
+  }
+  const killTimeDate = new Date(timeISO);
+  if (isNaN(killTimeDate)) {
+    displayStatus("時刻形式が不正です。", "error");
+    return;
+  }
+  DOM.modalStatus.textContent = "送信中...";
+  displayStatus(`${mob.Name} 討伐時間報告中...`);
+  try {
+    await addDoc(collection(db, "reports"), {
+      mob_id: mobNo.toString(),
+      kill_time: killTimeDate,
+      reporter_uid: userId,
+      memo,
+      repop_seconds: mob.REPOP_s
+    });
+    closeReportModal();
+    displayStatus("報告が完了しました。データ反映を待っています。", "success");
+  } catch (err) {
+    DOM.modalStatus.textContent = `送信エラー: ${err.message || "通信失敗"}`;
+    displayStatus(`LKT報告エラー: ${err.message || "通信失敗"}`, "error");
+  }
+}
+
+export { openReportModal, closeReportModal, submitReport, toJstAdjustedIsoString };
