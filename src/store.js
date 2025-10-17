@@ -60,4 +60,4 @@ function setOpenMobCardNo(no) {
   localStorage.setItem("openMobCardNo", no ?? "");
 }
 
-export { EXPANSION_MAP, getState, getMobByNo, setUserId, setBaseMobData, setMobs, setFilter, setOpenMobCardNo };
+export { state, EXPANSION_MAP, getState, getMobByNo, setUserId, setBaseMobData, setMobs, setFilter, setOpenMobCardNo };
