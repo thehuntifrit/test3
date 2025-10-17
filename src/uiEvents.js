@@ -3,9 +3,9 @@
 import { getState, setFilter, setOpenMobCardNo } from "./store.js";
 import { filterAndRender } from "./uiRender.js";
 import { renderAreaFilterPanel, toggleAreaFilterPanel, sortAndRedistribute } from "./filter.js";
-import { openReportModal, closeReportModal, submitReport, toJstAdjustedIsoString } from "./modal.js";
+import { DOMElements, openReportModal, closeReportModal, submitReport, toJstAdjustedIsoString } from "./modal.js";
 import { DOM, FILTER_TO_DATA_RANK_MAP } from "./uiShared.js";
-import { submitReport } from "./firestore.js";
+import { submitReport, toggleCrushStatus } from "./firestore.js";
 import { debounce } from "./utils.js";
 
 function attachEventListeners() {
