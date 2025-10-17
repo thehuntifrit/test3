@@ -40,7 +40,7 @@ function createMobCard(mob) {
         <div class="flex flex-col flex-shrink min-w-0">
           <div class="flex items-center space-x-2">
             <span class="rank-icon ${rankConfig.bg} text-white text-xs font-bold px-2 py-0.5 rounded-full">${rankLabel}</span>
-            <span class="mob-name text-lg font-bold text-outline truncate max-w-xs md:max-w-[150px] lg:max-w-full">${mob.Name}</span>
+            <span class="mob-name text-lg font-bold text-outline truncate max-w-xs md:max-w-[400px] lg:max-w-full">${mob.Name}</span>
           </div>
           <span class="text-xs text-gray-400 mt-0.5">${mob.Area} (${mob.Expansion})</span>
         </div>
