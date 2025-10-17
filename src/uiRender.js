@@ -219,7 +219,7 @@ function updateProgressBars() {
   });
 }
 
-// 🔧 拡大表示イベント
+// 拡大表示イベント
 document.addEventListener("click", e => {
   const img = e.target.closest(".mob-crush-map");
   if (!img) return;
@@ -231,33 +231,43 @@ document.addEventListener("click", e => {
   zoomed.src = img.src;
   modal.classList.remove("hidden");
 
-  // 元画像サイズ取得
-  const originalWidth = img.naturalWidth;
-  const originalHeight = img.naturalHeight;
+  const mobNo = img.dataset.mobNo;
+  const mobData = getState().mobs.find(m => m.No === mobNo);
+  if (!mobData || !mobData.spawn_points) return;
 
-  // ポインタ座標取得（例：data-x, data-y）
-  const points = Array.from(img.parentElement.querySelectorAll(".crush-point"));
-
-  // 拡大後に再描画
   zoomed.onload = () => {
-    const scaleX = zoomed.width / originalWidth;
-    const scaleY = zoomed.height / originalHeight;
-
+    const w = zoomed.width;
+    const h = zoomed.height;
     layer.innerHTML = "";
-    points.forEach(p => {
-      const x = parseFloat(p.dataset.x) * scaleX;
-      const y = parseFloat(p.dataset.y) * scaleY;
+
+    mobData.spawn_points.forEach(p => {
+      const x = (p.x / 100) * w;
+      const y = (p.y / 100) * h;
 
       const dot = document.createElement("div");
-      dot.className = "crush-point";
+      dot.className = "spawn-point";
       dot.style.left = `${x}px`;
       dot.style.top = `${y}px`;
+
+      if (["S", "A"].includes(p.mob_ranks[0])) {
+        dot.classList.add("spawn-point-sa", "spawn-point-shadow-sa");
+      } else {
+        dot.classList.add("spawn-point-b-only");
+      }
+
+      if (mobData.spawn_cull_status?.[p.id]) {
+        dot.classList.add("spawn-point-culled", "culled-with-white-border");
+      }
+
+      if (p.is_last_one) {
+        dot.classList.add("spawn-point-lastone", "spawn-point-shadow-lastone");
+      }
+
       layer.appendChild(dot);
     });
   };
 });
 
-// 🔧 モーダル閉じる
 document.getElementById("crush-map-modal").addEventListener("click", () => {
   document.getElementById("crush-map-modal").classList.add("hidden");
   document.getElementById("crush-point-layer").innerHTML = "";
