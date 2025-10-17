@@ -244,5 +244,11 @@ export const toggleCrushStatus = async (mobNo, locationId, isCurrentlyCulled) =>
   }
 };
 
+const submitReport = async (...) => { ... };
+const toggleCrushStatus = async (...) => { ... };
 
-export { attachEventListeners };
+export {
+  attachEventListeners,
+  submitReport,
+  toggleCrushStatus
+};
