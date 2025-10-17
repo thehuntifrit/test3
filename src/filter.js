@@ -23,7 +23,7 @@ export const renderRankTabs = () => {
   });
 };
 
-function renderAreaFilterPanel() {
+export function renderAreaFilterPanel() {
   DOM.areaFilterPanel.innerHTML = "";
   const state = getState();
   const uiRank = state.filter.rank;
@@ -44,7 +44,9 @@ function renderAreaFilterPanel() {
 
   const allBtn = document.createElement("button");
   allBtn.textContent = isAllSelected ? "全解除" : "全選択";
-  allBtn.className = `area-filter-btn px-3 py-1 text-xs rounded font-semibold transition ${isAllSelected ? "bg-red-500" : "bg-gray-500 hover:bg-gray-400"}`;
+  allBtn.className = `area-filter-btn px-5 py-1 rounded text-sm font-semibold text-white transition duration-150 ${
+    isAllSelected ? "bg-blue-700" : "bg-blue-600"
+  } hover:bg-blue-500`;
   allBtn.dataset.area = "ALL";
   DOM.areaFilterPanel.appendChild(allBtn);
 
@@ -58,7 +60,9 @@ function renderAreaFilterPanel() {
       const btn = document.createElement("button");
       const isSelected = currentSet.has(area);
       btn.textContent = area;
-      btn.className = `area-filter-btn px-3 py-1 text-xs rounded font-semibold transition ${isSelected ? "bg-green-500" : "bg-gray-500 hover:bg-gray-400"}`;
+      btn.className = `area-filter-btn px-5 py-1 rounded text-sm font-semibold text-white transition duration-150 ${
+        isSelected ? "bg-blue-700" : "bg-blue-600"
+      } hover:bg-blue-500`;
       btn.dataset.area = area;
       DOM.areaFilterPanel.appendChild(btn);
     });
