@@ -73,7 +73,7 @@ export const DOMElements = {
   mobList: document.getElementById("mob-list")
 };
 
-export const closeReportModal = () => {
+const closeReportModal = () => {
   DOMElements.reportModal.classList.add("hidden");
   DOMElements.reportTimeInput.value = "";
   DOMElements.reportMemoInput.value = "";
