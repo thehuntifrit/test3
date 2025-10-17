@@ -28,12 +28,4 @@ function subscribeMobLocations(onUpdate) {
   return unsub;
 }
 
-const submitReport = async (...) => { ... };
-const toggleCrushStatus = async (...) => { ... };
-
-export {
-  subscribeMobStatusDocs,
-  subscribeMobLocations,
-  submitReport,
-  toggleCrushStatus
-};
+export { subscribeMobStatusDocs, subscribeMobLocations };
