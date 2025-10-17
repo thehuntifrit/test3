@@ -13,6 +13,7 @@ function toJstAdjustedIsoString(date) {
 }
 
 function openReportModal(mobNo) {
+  const DOM = getDOMElements();
   const mob = getState().mobs.find(m => m.No === mobNo);
   if (!mob) return;
   const iso = toJstAdjustedIsoString(new Date());
@@ -25,7 +26,9 @@ function openReportModal(mobNo) {
   DOM.reportModal.classList.remove("hidden");
   DOM.reportModal.classList.add("flex");
 }
+
 async function submitReport(mobNo, timeISO, memo) {
+  const DOM = getDOMElements();
   const { userId, mobs } = getState();
   if (!userId) {
     displayStatus("認証が完了していません。ページをリロードしてください。", "error");
