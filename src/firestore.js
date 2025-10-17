@@ -29,7 +29,7 @@ function subscribeMobLocations(onUpdate) {
 }
 
 // 討伐報告
-export const submitReport = async (mobNo, timeISO, memo) => {
+const submitReport = async (mobNo, timeISO, memo) => {
   const state = getState(); // ← store.js の state を参照
   const userId = state.userId;
   const mobs = state.mobs;
@@ -74,7 +74,7 @@ export const submitReport = async (mobNo, timeISO, memo) => {
 };
 
 // 湧き潰し報告
-export const toggleCrushStatus = async (mobNo, locationId, isCurrentlyCulled) => {
+const toggleCrushStatus = async (mobNo, locationId, isCurrentlyCulled) => {
   const state = getState();
   const userId = state.userId;
   const mobs = state.mobs;
@@ -113,36 +113,4 @@ export const toggleCrushStatus = async (mobNo, locationId, isCurrentlyCulled) =>
   }
 };
 
-// Firestoreへの報告送信
-export const submitReport = async (mobNo, timeISO, memo) => {
-  try {
-    const docRef = await addDoc(collection(db, "reports"), {
-      mobNo,
-      time: timeISO,
-      memo,
-      createdAt: serverTimestamp()
-    });
-    console.log("Report submitted:", docRef.id);
-  } catch (err) {
-    console.error("報告送信失敗:", err);
-    throw err;
-  }
-};
-
-// Cloud Functionで湧き潰し状態を更新
-export const toggleCrushStatus = async (mobNo, locationId, isCurrentlyCulled) => {
-  try {
-    const updateCrushStatus = httpsCallable(functions, "updateCrushStatus");
-    const result = await updateCrushStatus({
-      mobNo,
-      locationId,
-      culled: !isCurrentlyCulled
-    });
-    console.log("湧き潰し更新:", result.data);
-  } catch (err) {
-    console.error("湧き潰し更新失敗:", err);
-    throw err;
-  }
-};
-
-export {subscribeMobStatusDocs, subscribeMobLocations};
+export {submitReport, toggleCrushStatus, subscribeMobStatusDocs, subscribeMobLocations};
