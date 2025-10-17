@@ -4,6 +4,23 @@ import { DOM, FILTER_TO_DATA_RANK_MAP } from "./uiShared.js";
 import { debounce } from "./utils.js";
 import { filterAndRender } from "./uiRender.js";
 
+export const renderRankTabs = () => {
+  const rankList = ["ALL", "S", "A", "FATE"];
+  const container = document.getElementById("rank-tabs");
+  if (!container) return;
+  container.innerHTML = "";
+
+  rankList.forEach(rank => {
+    const btn = document.createElement("button");
+    btn.dataset.rank = rank;
+    btn.textContent = rank;
+    btn.className = `tab-button px-5 py-1 rounded text-sm font-semibold text-white transition duration-150 ${
+      state.filter.rank === rank ? "bg-blue-700" : "bg-blue-600"
+    } hover:bg-blue-500`;
+    container.appendChild(btn);
+  });
+};
+
 function renderAreaFilterPanel() {
   DOM.areaFilterPanel.innerHTML = "";
   const state = getState();
