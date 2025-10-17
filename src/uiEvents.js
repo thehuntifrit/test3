@@ -159,7 +159,8 @@ function attachEventListeners() {
 });
 
 // 湧き潰しボタンのクリック処理
-    DOM.mobList.addEventListener("click", e => {
+    const DOM = getDOMElements();
+      DOM.mobList.addEventListener("click", e => {
   if (e.target.classList.contains("crush-toggle")) {
     const mobNo = parseInt(e.target.dataset.mobNo, 10);
     const locationId = e.target.dataset.locationId;
