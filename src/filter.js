@@ -68,19 +68,6 @@ export function renderAreaFilterPanel() {
     });
 }
 
-function toggleAreaFilterPanel(forceClose = false) {
-  const state = getState();
-  if (state.filter.rank === "ALL") forceClose = true;
-  if (forceClose || DOM.areaFilterWrapper.classList.contains("open")) {
-    DOM.areaFilterWrapper.classList.remove("open");
-    DOM.areaFilterWrapper.classList.add("max-h-0", "opacity-0", "pointer-events-none");
-  } else {
-    DOM.areaFilterWrapper.classList.add("open");
-    DOM.areaFilterWrapper.classList.remove("max-h-0", "opacity-0", "pointer-events-none");
-    renderAreaFilterPanel();
-  }
-}
-
 const sortAndRedistribute = debounce(() => filterAndRender(), 200);
 
 function updateFilterUI() {
