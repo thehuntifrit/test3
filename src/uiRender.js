@@ -84,12 +84,11 @@ const expandablePanelHTML = isExpandable ? `
 <div class="expandable-panel ${isOpen ? 'open' : ''}">
     <div class="px-2 py-1 text-sm space-y-1.5">
         <div class="flex justify-between items-start flex-wrap">
-            <div class="w-full font-semibold text-yellow-300">抽出条件</div>
-            <div class="w-full text-gray-300 mb-2">${processText(mob.Condition)}</div>
             <div class="w-full text-right text-sm font-mono text-blue-300">次回: ${nextTimeDisplay}</div>
+            <div class="w-full text-right text-xs text-gray-400 pt-1">前回: ${lastKillDisplay}</div>
             <div class="w-full text-left text-sm text-gray-300 mb-2">Memo: ${mob.last_kill_memo || 'なし'}</div>
-            <div class="w-full text-left text-xs text-gray-400 border-t border-gray-600 pt-1">最終討伐報告: ${lastKillDisplay}
-            </div>
+            <div class="w-full font-semibold text-yellow-300 border-t border-gray-600">抽出条件</div>
+            <div class="w-full text-gray-300 mb-2">${processText(mob.Condition)}</div>
         </div>
         ${mob.Map && rank === 'S' ? `
         <div class="map-content py-1.5 flex justify-center relative">
