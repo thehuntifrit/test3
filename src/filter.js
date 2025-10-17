@@ -76,6 +76,9 @@ function toggleAreaPanel(show) {
   areaPanel.classList.toggle("hidden", !show);
 }
 
+toggleAreaPanel(true);  // 表示
+toggleAreaPanel(false); // 非表示
+
 function updateFilterUI() {
   const state = getState();
   const currentRankKeyForColor = FILTER_TO_DATA_RANK_MAP[state.filter.rank] || state.filter.rank;
