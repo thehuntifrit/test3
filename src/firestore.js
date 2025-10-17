@@ -1,6 +1,6 @@
 // firestore.js
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "./firebase.js";
-import { collection, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
 function subscribeMobStatusDocs(onUpdate) {
   const docIds = ["s_latest", "a_latest", "f_latest"];
@@ -114,18 +114,22 @@ export const toggleCrushStatus = async (mobNo, locationId, isCurrentlyCulled) =>
 };
 
 // Firestore に報告を送信する処理
-const submitReport = async (mobNo, timeISO, memo) => { 
-  const docRef = await addDoc(collection(db, "reports"), {
-    mobNo,
-    time: timeISO,
-    memo,
-    userId: currentUserId,
-    createdAt: serverTimestamp()
-  });
-  console.log("Report submitted:", docRef.id);
+const submitReport = async (mobNo, timeISO, memo) => {
+  try {
+    const docRef = await addDoc(collection(db, "reports"), {
+      mobNo,
+      time: timeISO,
+      memo,
+      createdAt: serverTimestamp()
+    });
+    console.log("Report submitted:", docRef.id);
+  } catch (err) {
+    console.error("報告送信失敗:", err);
+    throw err;
+  }
 };
 
-const toggleCrushStatus = async (mobNo, locationId, isCurrentlyCulled) => {
+export const toggleCrushStatus = async (mobNo, locationId, isCurrentlyCulled) => {
   const func = httpsCallable(functions, "updateCrushStatus");
   const result = await func({
     mobNo,
