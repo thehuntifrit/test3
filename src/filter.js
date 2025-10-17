@@ -22,7 +22,6 @@ const renderRankTabs = () => {
   });
 };
 
-
 function renderAreaFilterPanel() {
   DOM.areaFilterPanel.innerHTML = "";
   const state = getState();
