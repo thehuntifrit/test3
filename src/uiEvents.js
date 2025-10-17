@@ -6,7 +6,7 @@ import { DOMElements, openReportModal, closeReportModal, toJstAdjustedIsoString 
 import { DOM, FILTER_TO_DATA_RANK_MAP } from "./uiShared.js";
 import { submitReport, toggleCrushStatus } from "./firestore.js";
 import { debounce } from "./utils.js";
-import { renderRankTabs, filterAndRender } from "./uiRender.js";
+import { filterAndRender } from "./uiRender.js";
 
 renderRankTabs(); // 初期化時に呼び出し
 
