@@ -4,7 +4,7 @@ import { DOM, FILTER_TO_DATA_RANK_MAP } from "./uiShared.js";
 import { debounce } from "./utils.js";
 import { filterAndRender } from "./uiRender.js";
 
-export const renderRankTabs = () => {
+const renderRankTabs = () => {
   const state = getState();
   const rankList = ["ALL", "S", "A", "FATE"];
   const container = document.getElementById("rank-tabs");
