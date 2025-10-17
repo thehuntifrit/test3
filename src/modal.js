@@ -25,12 +25,6 @@ function openReportModal(mobNo) {
   DOM.reportModal.classList.remove("hidden");
   DOM.reportModal.classList.add("flex");
 }
-
-function closeReportModal() {
-  DOM.reportModal.classList.add("hidden");
-  DOM.reportModal.classList.remove("flex");
-}
-
 async function submitReport(mobNo, timeISO, memo) {
   const { userId, mobs } = getState();
   if (!userId) {
