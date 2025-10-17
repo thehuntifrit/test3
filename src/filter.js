@@ -6,7 +6,7 @@ import { filterAndRender, renderAreaTabs } from "./uiRender.js";
 
 renderAreaTabs(); // 初期化時に呼び出し
 
-export const renderRankTabs = () => {
+const renderRankTabs = () => {
   const rankList = ["ALL", "S", "A", "FATE"];
   const container = document.getElementById("rank-tabs");
   if (!container) return;
@@ -23,7 +23,7 @@ export const renderRankTabs = () => {
   });
 };
 
-export function renderAreaFilterPanel() {
+function renderAreaFilterPanel() {
   DOM.areaFilterPanel.innerHTML = "";
   const state = getState();
   const uiRank = state.filter.rank;
@@ -109,4 +109,4 @@ function toggleAreaFilterPanel(forceClose = false) {
   if (!forceClose) renderAreaFilterPanel();
 }
 
-export { renderAreaFilterPanel, toggleAreaFilterPanel, sortAndRedistribute, updateFilterUI };
+export { renderAreaFilterPanel, renderRankTabs, toggleAreaFilterPanel, sortAndRedistribute, updateFilterUI };
