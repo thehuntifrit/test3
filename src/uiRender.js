@@ -268,7 +268,7 @@ document.addEventListener("click", e => {
   };
 });
 
-document.getElementById("crush-map-modal").addEventListener("click", () => {
+  document.getElementById("crush-map-modal").addEventListener("click", () => {
   document.getElementById("crush-map-modal").classList.add("hidden");
   document.getElementById("crush-point-layer").innerHTML = "";
 });
