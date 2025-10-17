@@ -38,14 +38,14 @@ function createMobCard(mob) {
 <div class="p-1.5 space-y-1 bg-gray-800/70" data-toggle="card-header">
     <div class="flex justify-between items-start gap-2">
 
-        <div class="flex items-start gap-2">
-            <!-- ランクアイコン：左端に固定 -->
+        <div class="flex items-center gap-2">
+            <!-- ランクアイコン -->
             <span
-                class="rank-icon ${rankConfig.bg} text-white text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full shrink-0 mt-1">
+                class="rank-icon ${rankConfig.bg} text-white text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full shrink-0">
                 ${rankLabel}
             </span>
 
-            <!-- モブ名＋エリア名：縦並び -->
+            <!-- モブ名＋エリア名 -->
             <div class="flex flex-col min-w-0">
                 <span class="mob-name text-lg font-bold text-outline truncate max-w-full">
                     ${mob.Name}
