@@ -59,15 +59,13 @@ async function submitReport(mobNo, timeISO, memo) {
   }
 }
 
-export function getDOMElements() {
-  return {
-    reportSubmitBtn: document.getElementById("report-submit"),
-    reportModal: document.getElementById("report-modal"),
-    reportTimeInput: document.getElementById("report-time"),
-    reportMemoInput: document.getElementById("report-memo"),
-    mobList: document.getElementById("mob-list")
-  };
-}
+export const DOMElements = {
+  reportSubmitBtn: document.getElementById("report-submit"),
+  reportModal: document.getElementById("report-modal"),
+  reportTimeInput: document.getElementById("report-time"),
+  reportMemoInput: document.getElementById("report-memo"),
+  mobList: document.getElementById("mob-list")
+};
 
 const closeReportModal = () => {
   DOMElements.reportModal.classList.add("hidden");
