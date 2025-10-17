@@ -102,4 +102,11 @@ function updateFilterUI() {
   });
 }
 
+function toggleAreaFilterPanel(forceClose = false) {
+  const state = getState();
+  if (state.filter.rank === "ALL") forceClose = true;
+  DOM.areaFilterPanel.classList.toggle("hidden", forceClose);
+  if (!forceClose) renderAreaFilterPanel();
+}
+
 export { renderAreaFilterPanel, toggleAreaFilterPanel, sortAndRedistribute, updateFilterUI };
