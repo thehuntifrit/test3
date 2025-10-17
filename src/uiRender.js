@@ -8,6 +8,26 @@ import { renderRankTabs } from "./uiRender.js";
 
 renderRankTabs(); // 初期化時に呼び出し
 
+export const renderRankTabs = () => {
+  const rankList = [
+    { label: "ALL", value: "ALL", color: "bg-blue-600", hover: "hover:bg-blue-500" },
+    { label: "S", value: "S", color: "bg-red-600", hover: "hover:bg-red-500" },
+    { label: "A", value: "A", color: "bg-yellow-600", hover: "hover:bg-yellow-500" },
+    { label: "F", value: "FATE", color: "bg-indigo-600", hover: "hover:bg-indigo-500" }
+  ];
+
+  const container = document.getElementById("rank-tabs");
+  container.innerHTML = "";
+
+  rankList.forEach(rank => {
+    const btn = document.createElement("button");
+    btn.dataset.rank = rank.value;
+    btn.textContent = rank.label;
+    btn.className = `tab-button px-5 py-1 rounded text-sm font-semibold text-white transition duration-150 ${rank.color} ${rank.hover}`;
+    container.appendChild(btn);
+  });
+};
+
 function createMobCard(mob) {
   const rank = mob.Rank;
   const rankConfig = RANK_COLORS[rank] || RANK_COLORS.A;
