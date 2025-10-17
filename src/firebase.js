@@ -33,4 +33,5 @@ async function initializeAuth() {
   });
 }
 
+export const functions = getFunctions(app);
 export { app, db, auth, functions, initializeAuth };
