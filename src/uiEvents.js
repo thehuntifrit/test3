@@ -148,10 +148,10 @@ function attachEventListeners() {
 
 // 討伐報告モーダルの送信ボタン
   const DOM = getDOMElements();
-        DOM.reportSubmitBtn?.addEventListener("click", () => {
-  const mobNo = parseInt(DOMElements.reportModal.dataset.mobNo, 10);
-  const timeISO = DOMElements.reportTimeInput.value;
-  const memo = DOMElements.reportMemoInput.value;
+    DOM.reportSubmitBtn?.addEventListener("click", () => {
+  const mobNo = parseInt(DOM.reportModal.dataset.mobNo, 10);
+  const timeISO = DOM.reportTimeInput.value;
+  const memo = DOM.reportMemoInput.value;
 
   submitReport(mobNo, timeISO, memo)
     .then(() => closeReportModal())
@@ -159,7 +159,7 @@ function attachEventListeners() {
 });
 
 // 湧き潰しボタンのクリック処理
-DOMElements.mobList.addEventListener("click", e => {
+    DOM.mobList.addEventListener("click", e => {
   if (e.target.classList.contains("crush-toggle")) {
     const mobNo = parseInt(e.target.dataset.mobNo, 10);
     const locationId = e.target.dataset.locationId;
