@@ -47,7 +47,7 @@ function createMobCard(mob) {
 
             <!-- モブ名＋エリア名 -->
             <div class="flex flex-col min-w-0">
-                <span class="mob-name text-lg font-bold text-outline truncate max-w-full">
+                <span class="mob-name text-lg font-bold text-outline truncate max-w-[70vw] sm:max-w-[60vw] md:max-w-[60vw] lg:max-w-[60vw] max-w-full">
                     ${mob.Name}
                 </span>
                 <span class="text-xs text-gray-400 mt-0.5 truncate">
