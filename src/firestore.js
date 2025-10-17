@@ -1,6 +1,6 @@
 // firestore.js
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "./firebase.js";
+import { collection, addDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
 function subscribeMobStatusDocs(onUpdate) {
   const docIds = ["s_latest", "a_latest", "f_latest"];
@@ -145,4 +145,4 @@ export const toggleCrushStatus = async (mobNo, locationId, isCurrentlyCulled) =>
   }
 };
 
-export {subscribeMobStatusDocs, subscribeMobLocations, submitReport, toggleCrushStatus};
+export {subscribeMobStatusDocs, subscribeMobLocations};
