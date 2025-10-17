@@ -34,7 +34,7 @@ function createMobCard(mob) {
   const rankLabel = rankConfig.label || rank;
   
   const progressText = mob.repopInfo?.timeRemaining || "Calculating...";
-    const lastKillDisplay = formatLastKillTime(mob.last_kill_time);
+  const lastKillDisplay = formatLastKillTime(mob.last_kill_time);
   const absFmt = { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tokyo' };
   const nextTimeDisplay = mob.repopInfo?.nextMinRepopDate ? new Intl.DateTimeFormat('ja-JP', absFmt).format(mob.repopInfo.nextMinRepopDate) : '未確定';
   const prevTimeDisplay = mob.last_kill_time > 0 ? new Intl.DateTimeFormat('ja-JP', absFmt).format(new Date(mob.last_kill_time * 1000)) : '未報告';
@@ -180,26 +180,6 @@ function filterAndRender({ isInitialLoad = false } = {}) {
     updateProgressBars();
   }
 }
-
-export const renderRankTabs = () => {
-  const rankList = [
-    { label: "ALL", value: "ALL", color: "bg-blue-600", hover: "hover:bg-blue-500" },
-    { label: "S", value: "S", color: "bg-red-600", hover: "hover:bg-red-500" },
-    { label: "A", value: "A", color: "bg-yellow-600", hover: "hover:bg-yellow-500" },
-    { label: "F", value: "FATE", color: "bg-indigo-600", hover: "hover:bg-indigo-500" }
-  ];
-
-  const container = document.getElementById("rank-tabs");
-  container.innerHTML = "";
-
-  rankList.forEach(rank => {
-    const btn = document.createElement("button");
-    btn.dataset.rank = rank.value;
-    btn.textContent = rank.label;
-    btn.className = `tab-button px-5 py-1 rounded text-sm font-semibold text-white transition duration-150 ${rank.color} ${rank.hover}`;
-    container.appendChild(btn);
-  });
-};
 
 function distributeCards() {
   const width = window.innerWidth;
