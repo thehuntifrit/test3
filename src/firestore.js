@@ -113,8 +113,8 @@ export const toggleCrushStatus = async (mobNo, locationId, isCurrentlyCulled) =>
   }
 };
 
-const submitReport = async (...) => { ... };
-const toggleCrushStatus = async (...) => { ... };
+const submitReport = async (mobNo, timeISO, memo) => { ... };
+const toggleCrushStatus = async (mobNo, locationId, isCurrentlyCulled) => { ... };
 
 export {
   subscribeMobStatusDocs,
