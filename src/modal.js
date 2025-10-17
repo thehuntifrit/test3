@@ -68,6 +68,7 @@ export const DOMElements = {
 };
 
 const closeReportModal = () => {
+  const DOMElements = getDOMElements();
   DOMElements.reportModal.classList.add("hidden");
   DOMElements.reportTimeInput.value = "";
   DOMElements.reportMemoInput.value = "";
