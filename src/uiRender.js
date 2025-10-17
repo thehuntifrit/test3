@@ -71,7 +71,7 @@ function createMobCard(mob) {
         </div>
         ${mob.Map && rank === 'S' ? `
           <div class="map-content py-1.5 flex justify-center relative">
-            <img src="./maps/${mob.Map}" alt="${mob.Area} Map" class="w-full h-auto rounded shadow-lg border border-gray-600">
+            <img src="./maps/${mob.Map}" alt="${mob.Area} Map" class="mob-crush-map w-full h-auto rounded shadow-lg border border-gray-600" data-mob-no="${mob.No}">
             <div class="map-overlay absolute inset-0" data-mob-no="${mob.No}">
               ${spawnPointsHtml}
             </div>
