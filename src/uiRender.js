@@ -219,4 +219,28 @@ function updateProgressBars() {
   });
 }
 
+// 🔧 画像拡大イベントバインド
+document.addEventListener("click", e => {
+  const img = e.target.closest(".hunt-map-image");
+  if (!img) return;
+
+  const modal = document.getElementById("image-zoom-modal");
+  const zoomed = document.getElementById("zoomed-image");
+  zoomed.src = img.src;
+  modal.classList.remove("hidden");
+});
+
+// 🔧 モーダル閉じる処理
+document.getElementById("image-zoom-modal").addEventListener("click", () => {
+  document.getElementById("image-zoom-modal").classList.add("hidden");
+  document.getElementById("zoomed-image").src = "";
+});
+
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") {
+    document.getElementById("image-zoom-modal").classList.add("hidden");
+    document.getElementById("zoomed-image").src = "";
+  }
+});
+
 export { filterAndRender, distributeCards, updateProgressBars, createMobCard };
