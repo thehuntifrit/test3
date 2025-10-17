@@ -70,6 +70,12 @@ export function renderAreaFilterPanel() {
 
 const sortAndRedistribute = debounce(() => filterAndRender(), 200);
 
+const areaPanel = document.getElementById("area-filter-panel");
+
+function toggleAreaPanel(show) {
+  areaPanel.classList.toggle("hidden", !show);
+}
+
 function updateFilterUI() {
   const state = getState();
   const currentRankKeyForColor = FILTER_TO_DATA_RANK_MAP[state.filter.rank] || state.filter.rank;
