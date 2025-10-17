@@ -113,7 +113,7 @@ export const toggleCrushStatus = async (mobNo, locationId, isCurrentlyCulled) =>
   }
 };
 
-// Firestore に報告を送信する処理
+// Firestoreへの報告送信
 export const submitReport = async (mobNo, timeISO, memo) => {
   try {
     const docRef = await addDoc(collection(db, "reports"), {
@@ -129,6 +129,7 @@ export const submitReport = async (mobNo, timeISO, memo) => {
   }
 };
 
+// Cloud Functionで湧き潰し状態を更新
 export const toggleCrushStatus = async (mobNo, locationId, isCurrentlyCulled) => {
   try {
     const updateCrushStatus = httpsCallable(functions, "updateCrushStatus");
