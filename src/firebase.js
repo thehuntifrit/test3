@@ -14,10 +14,11 @@ const FIREBASE_CONFIG = {
     measurementId: "G-J1KGFE15XP"
 };
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 const auth = getAuth(app);
 const functions = getFunctions(app, "asia-northeast2");
+const analytics = getAnalytics(app);
 
 async function initializeAuth() {
   return new Promise((resolve) => {
