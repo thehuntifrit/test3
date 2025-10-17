@@ -147,7 +147,8 @@ function attachEventListeners() {
 }
 
 // 討伐報告モーダルの送信ボタン
-DOMElements.reportSubmitBtn.addEventListener("click", () => {
+  const DOM = getDOMElements();
+        DOM.reportSubmitBtn?.addEventListener("click", () => {
   const mobNo = parseInt(DOMElements.reportModal.dataset.mobNo, 10);
   const timeISO = DOMElements.reportTimeInput.value;
   const memo = DOMElements.reportMemoInput.value;
