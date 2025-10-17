@@ -113,8 +113,27 @@ export const toggleCrushStatus = async (mobNo, locationId, isCurrentlyCulled) =>
   }
 };
 
-const submitReport = async (mobNo, timeISO, memo) => { ... };
-const toggleCrushStatus = async (mobNo, locationId, isCurrentlyCulled) => { ... };
+// Firestore に報告を送信する処理
+const submitReport = async (mobNo, timeISO, memo) => { 
+  const docRef = await addDoc(collection(db, "reports"), {
+    mobNo,
+    time: timeISO,
+    memo,
+    userId: currentUserId,
+    createdAt: serverTimestamp()
+  });
+  console.log("Report submitted:", docRef.id);
+};
+
+const toggleCrushStatus = async (mobNo, locationId, isCurrentlyCulled) => {
+  const func = httpsCallable(functions, "updateCrushStatus");
+  const result = await func({
+    mobNo,
+    locationId,
+    culled: !isCurrentlyCulled
+  });
+  console.log("湧き潰し更新:", result.data);
+};
 
 export {
   subscribeMobStatusDocs,
