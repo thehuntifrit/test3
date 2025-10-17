@@ -50,7 +50,7 @@ function formatLastKillTime(timestamp) {
 
 function processText(text) {
   if (typeof text !== "string" || !text) return "";
-  return text.replace(/\/\/\//g, "<br>");
+  return text.replace(/\/\//g, "<br>");
 }
 
 function debounce(func, wait) {
