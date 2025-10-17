@@ -64,9 +64,12 @@
             </form>
         </div>
     </div>
-    <!-- 🔧 拡大表示用のモーダル -->
-    <div id="image-zoom-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
-        <img id="zoomed-image" src="" alt="拡大画像" class="max-w-full max-h-full rounded shadow-lg">
+    
+    <div id="crush-map-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
+      <div class="relative">
+        <img id="crush-map-zoomed" src="" alt="拡大マップ" class="max-w-[90vw] max-h-[90vh] rounded shadow-lg">
+        <div id="crush-point-layer" class="absolute top-0 left-0 w-full h-full pointer-events-none"></div>
+      </div>
     </div>
     
     <script type="module" src="./src/utils.js"></script>
