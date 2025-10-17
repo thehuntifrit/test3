@@ -114,7 +114,7 @@ export const toggleCrushStatus = async (mobNo, locationId, isCurrentlyCulled) =>
 };
 
 // Firestore に報告を送信する処理
-const submitReport = async (mobNo, timeISO, memo) => {
+export const submitReport = async (mobNo, timeISO, memo) => {
   try {
     const docRef = await addDoc(collection(db, "reports"), {
       mobNo,
@@ -130,13 +130,18 @@ const submitReport = async (mobNo, timeISO, memo) => {
 };
 
 export const toggleCrushStatus = async (mobNo, locationId, isCurrentlyCulled) => {
-  const func = httpsCallable(functions, "updateCrushStatus");
-  const result = await func({
-    mobNo,
-    locationId,
-    culled: !isCurrentlyCulled
-  });
-  console.log("湧き潰し更新:", result.data);
+  try {
+    const updateCrushStatus = httpsCallable(functions, "updateCrushStatus");
+    const result = await updateCrushStatus({
+      mobNo,
+      locationId,
+      culled: !isCurrentlyCulled
+    });
+    console.log("湧き潰し更新:", result.data);
+  } catch (err) {
+    console.error("湧き潰し更新失敗:", err);
+    throw err;
+  }
 };
 
 export {
