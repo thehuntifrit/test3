@@ -1,12 +1,14 @@
 
 // uiEvents.js
 import { getState, setFilter, setOpenMobCardNo } from "./store.js";
-import { filterAndRender } from "./uiRender.js";
 import { renderAreaFilterPanel, toggleAreaFilterPanel, sortAndRedistribute } from "./filter.js";
 import { DOMElements, openReportModal, closeReportModal, submitReport, toJstAdjustedIsoString } from "./modal.js";
 import { DOM, FILTER_TO_DATA_RANK_MAP } from "./uiShared.js";
 import { submitReport, toggleCrushStatus } from "./firestore.js";
 import { debounce } from "./utils.js";
+import { renderRankTabs, filterAndRender } from "./uiRender.js";
+
+renderRankTabs(); // 初期化時に呼び出し
 
 function attachEventListeners() {
   // Rank tabs
