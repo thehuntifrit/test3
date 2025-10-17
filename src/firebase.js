@@ -16,11 +16,10 @@ const FIREBASE_CONFIG = {
 };
 
 const app = initializeApp(FIREBASE_CONFIG);
-export const db = getFirestore(app);
-export const auth = getAuth(app);
-export const functions = getFunctions(app, "asia-northeast2");
-export const analytics = getAnalytics(app);
-
+const db = getFirestore(app);
+const auth = getAuth(app);
+const functionsInstance = getFunctions(app, "asia-northeast2");
+const analytics = getAnalytics(app);
 
 async function initializeAuth() {
   return new Promise((resolve) => {
