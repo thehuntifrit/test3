@@ -219,28 +219,48 @@ function updateProgressBars() {
   });
 }
 
-// 🔧 画像拡大イベントバインド
+// 🔧 拡大表示イベント
 document.addEventListener("click", e => {
-  const img = e.target.closest(".hunt-map-image");
+  const img = e.target.closest(".mob-crush-map");
   if (!img) return;
 
-  const modal = document.getElementById("image-zoom-modal");
-  const zoomed = document.getElementById("zoomed-image");
+  const modal = document.getElementById("crush-map-modal");
+  const zoomed = document.getElementById("crush-map-zoomed");
+  const layer = document.getElementById("crush-point-layer");
+
   zoomed.src = img.src;
   modal.classList.remove("hidden");
+
+  // 元画像サイズ取得
+  const originalWidth = img.naturalWidth;
+  const originalHeight = img.naturalHeight;
+
+  // ポインタ座標取得（例：data-x, data-y）
+  const points = Array.from(img.parentElement.querySelectorAll(".crush-point"));
+
+  // 拡大後に再描画
+  zoomed.onload = () => {
+    const scaleX = zoomed.width / originalWidth;
+    const scaleY = zoomed.height / originalHeight;
+
+    layer.innerHTML = "";
+    points.forEach(p => {
+      const x = parseFloat(p.dataset.x) * scaleX;
+      const y = parseFloat(p.dataset.y) * scaleY;
+
+      const dot = document.createElement("div");
+      dot.className = "crush-point";
+      dot.style.left = `${x}px`;
+      dot.style.top = `${y}px`;
+      layer.appendChild(dot);
+    });
+  };
 });
 
-// 🔧 モーダル閉じる処理
-document.getElementById("image-zoom-modal").addEventListener("click", () => {
-  document.getElementById("image-zoom-modal").classList.add("hidden");
-  document.getElementById("zoomed-image").src = "";
-});
-
-document.addEventListener("keydown", e => {
-  if (e.key === "Escape") {
-    document.getElementById("image-zoom-modal").classList.add("hidden");
-    document.getElementById("zoomed-image").src = "";
-  }
+// 🔧 モーダル閉じる
+document.getElementById("crush-map-modal").addEventListener("click", () => {
+  document.getElementById("crush-map-modal").classList.add("hidden");
+  document.getElementById("crush-point-layer").innerHTML = "";
 });
 
 export { filterAndRender, distributeCards, updateProgressBars, createMobCard };
