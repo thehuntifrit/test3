@@ -35,62 +35,67 @@ function createMobCard(mob) {
         : "";
 
     const cardHeaderHTML = `
-    <div class="p-1.5 space-y-1 bg-gray-800/70" data-toggle="card-header">
-      <div class="flex justify-between items-start space-x-2">
-        <div class="flex flex-col flex-shrink min-w-0">
+<div class="p-1.5 space-y-1 bg-gray-800/70" data-toggle="card-header">
+    <div class="flex justify-between items-start gap-2">
+        <!-- 左＋中央：ランクアイコン＋テキスト -->
+        <div class="flex items-start gap-2 flex-grow min-w-0">
+            <!-- ランクアイコン -->
+            <span
+                class="rank-icon ${rankConfig.bg} text-white text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full shrink-0">${rankLabel}</span>
 
-<div class="flex items-start gap-2">
-  <!-- 左：ランクアイコン -->
-  <span class="rank-icon ${rankConfig.bg} text-white text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full shrink-0">
-    ${rankLabel}
-  </span>
+            <!-- モブ名＋エリア名 -->
+            <div class="flex flex-col min-w-0">
+                <span class="mob-name text-lg font-bold text-outline truncate max-w-full">${mob.Name}</span>
+                <span class="text-xs text-gray-400 mt-0.5 truncate">${mob.Area} (${mob.Expansion})</span>
+            </div>
+        </div>
 
-  <!-- 右：モブ名（上）＋エリア名（下） -->
-  <div class="flex flex-col">
-    <span class="mob-name text-lg font-bold text-outline truncate max-w-[70vw] sm:max-w-[60vw] md:max-w-[60vw] lg:max-w-[60vw]">
-      ${mob.Name}
-    </span>
-    <span class="text-xs text-gray-400 mt-0.5">
-      ${mob.Area} (${mob.Expansion})
-    </span>
-  </div>
+        <!-- 右：報告ボタン -->
+        <div class="flex-shrink-0 flex flex-col space-y-1 items-end" style="min-width: 120px;">
+            ${rank === 'A' || rank === 'F'
+            ? `<button data-report-type="instant" data-mob-no="${mob.No}"
+                class="px-2 py-0.5 text-xs rounded bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-semibold transition">即時<br>報告</button>`
+            : `<button data-report-type="modal" data-mob-no="${mob.No}"
+                class="px-2 py-0.5 text-xs rounded bg-green-500 hover:bg-green-400 text-gray-900 font-semibold transition">報告<br>する</button>`
+            }
+        </div>
+    </div>
+
+    <!-- プログレスバー -->
+    <div class="progress-bar-wrapper h-4 rounded-full relative overflow-hidden transition-all duration-100 ease-linear">
+        <div class="progress-bar-bg absolute left-0 top-0 h-full rounded-full transition-all duration-100 ease-linear"
+            style="width: ${mob.repopInfo?.elapsedPercent || 0}%"></div>
+        <div class="progress-text absolute inset-0 flex items-center justify-center text-xs font-semibold"
+            style="line-height: 1;">
+            ${progressText}
+        </div>
+    </div>
 </div>
 
-        <div class="flex-shrink-0 flex flex-col space-y-1 items-end" style="min-width: 120px;">
-          ${rank === 'A' || rank === 'F'
-            ? `<button data-report-type="instant" data-mob-no="${mob.No}" class="px-2 py-0.5 text-xs rounded bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-semibold transition">即時<br>報告</button>`
-            : `<button data-report-type="modal" data-mob-no="${mob.No}" class="px-2 py-0.5 text-xs rounded bg-green-500 hover:bg-green-400 text-gray-900 font-semibold transition">報告<br>する</button>`
-        }
-        </div>
-      </div>
-      <div class="progress-bar-wrapper h-4 rounded-full relative overflow-hidden transition-all duration-100 ease-linear">
-        <div class="progress-bar-bg absolute left-0 top-0 h-full rounded-full transition-all duration-100 ease-linear" style="width: ${mob.repopInfo?.elapsedPercent || 0}%"></div>
-        <div class="progress-text absolute inset-0 flex items-center justify-center text-xs font-semibold" style="line-height: 1;">${progressText}
-      </div>
-    </div>
-    
-  `;
+`;
 
-    const expandablePanelHTML = isExpandable ? `
-    <div class="expandable-panel ${isOpen ? 'open' : ''}">
-      <div class="px-2 py-1 text-sm space-y-1.5">
+const expandablePanelHTML = isExpandable ? `
+<div class="expandable-panel ${isOpen ? 'open' : ''}">
+    <div class="px-2 py-1 text-sm space-y-1.5">
         <div class="flex justify-between items-start flex-wrap">
-          <div class="w-full font-semibold text-yellow-300">抽出条件</div>
-          <div class="w-full text-gray-300 mb-2">${processText(mob.Condition)}</div>
-          <div class="w-full text-right text-sm font-mono text-blue-300">次回: ${nextTimeDisplay}</div>
-          <div class="w-full text-left text-sm text-gray-300 mb-2">Memo: ${mob.last_kill_memo || 'なし'}</div>
-          <div class="w-full text-left text-xs text-gray-400 border-t border-gray-600 pt-1">最終討伐報告: ${lastKillDisplay}</div>
+            <div class="w-full font-semibold text-yellow-300">抽出条件</div>
+            <div class="w-full text-gray-300 mb-2">${processText(mob.Condition)}</div>
+            <div class="w-full text-right text-sm font-mono text-blue-300">次回: ${nextTimeDisplay}</div>
+            <div class="w-full text-left text-sm text-gray-300 mb-2">Memo: ${mob.last_kill_memo || 'なし'}</div>
+            <div class="w-full text-left text-xs text-gray-400 border-t border-gray-600 pt-1">最終討伐報告: ${lastKillDisplay}
+            </div>
         </div>
         ${mob.Map && rank === 'S' ? `
-          <div class="map-content py-1.5 flex justify-center relative">
-            <img src="./maps/${mob.Map}" alt="${mob.Area} Map" class="mob-crush-map w-full h-auto rounded shadow-lg border border-gray-600" data-mob-no="${mob.No}">
+        <div class="map-content py-1.5 flex justify-center relative">
+            <img src="./maps/${mob.Map}" alt="${mob.Area} Map"
+                class="mob-crush-map w-full h-auto rounded shadow-lg border border-gray-600" data-mob-no="${mob.No}">
             <div class="map-overlay absolute inset-0" data-mob-no="${mob.No}">
-              ${spawnPointsHtml}
+                ${spawnPointsHtml}
             </div>
-          </div>
+        </div>
         ` : ''}
-      </div>
     </div>
+</div>
   ` : '';
 
     return `
