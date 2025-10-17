@@ -38,8 +38,8 @@ function createMobCard(mob) {
     <div class="p-1.5 space-y-1 bg-gray-800/70" data-toggle="card-header">
       <div class="flex justify-between items-start space-x-2">
         <div class="flex flex-col flex-shrink min-w-0">
-          <div class="flex items-center space-x-2">
-            <span class="rank-icon ${rankConfig.bg} text-white text-xs font-bold w-8 h-8 rounded-full">${rankLabel}</span>
+          <div class="flex items-start gap-2">
+           <span class="rank-icon ${rankConfig.bg} text-white text-xs font-bold px-2 py-2 flex items-center justify-center rounded-full">${rankLabel}</s
             <span class="mob-name text-lg font-bold text-outline truncate max-w-[70vw] sm:max-w-[60vw] md:max-w-[60vw] lg:max-w-[60vw]">${mob.Name}</span>
           </div>
           <span class="text-xs text-gray-400 mt-0.5">${mob.Area} (${mob.Expansion})</span>
