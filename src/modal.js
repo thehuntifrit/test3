@@ -65,4 +65,18 @@ async function submitReport(mobNo, timeISO, memo) {
   }
 }
 
+export const DOMElements = {
+  reportSubmitBtn: document.getElementById("report-submit"),
+  reportModal: document.getElementById("report-modal"),
+  reportTimeInput: document.getElementById("report-time"),
+  reportMemoInput: document.getElementById("report-memo"),
+  mobList: document.getElementById("mob-list")
+};
+
+export const closeReportModal = () => {
+  DOMElements.reportModal.classList.add("hidden");
+  DOMElements.reportTimeInput.value = "";
+  DOMElements.reportMemoInput.value = "";
+};
+
 export { openReportModal, closeReportModal, submitReport, toJstAdjustedIsoString };
