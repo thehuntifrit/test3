@@ -173,5 +173,4 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-export const functions = getFunctions(app);
 export { attachEventListeners };
