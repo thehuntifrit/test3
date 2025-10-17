@@ -2,9 +2,7 @@
 import { getState, EXPANSION_MAP } from "./store.js";
 import { DOM, FILTER_TO_DATA_RANK_MAP } from "./uiShared.js";
 import { debounce } from "./utils.js";
-import { filterAndRender, renderAreaTabs } from "./uiRender.js";
-
-renderAreaTabs(); // 初期化時に呼び出し
+import { filterAndRender } from "./uiRender.js";
 
 const renderRankTabs = () => {
   const rankList = ["ALL", "S", "A", "FATE"];
