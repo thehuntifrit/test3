@@ -169,4 +169,5 @@ DOMElements.mobList.addEventListener("click", e => {
   }
 });
 
+export const functions = getFunctions(app);
 export { attachEventListeners };
