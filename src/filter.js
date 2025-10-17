@@ -19,7 +19,7 @@ const renderRankTabs = () => {
         const btn = document.createElement("button");
         btn.dataset.rank = rank;
         btn.textContent = rank;
-        btn.className = `tab-button py-1 text-xs rounded font-semibold text-white text-center transition ${isSelected ? "bg-green-500" : "bg-gray-500 hover:bg-gray-400"
+        btn.className = `tab-button px-4 py-1.5 text-sm rounded font-semibold text-white text-center transition ${isSelected ? "bg-green-500" : "bg-gray-500 hover:bg-gray-400"
             }`;
         container.appendChild(btn);
     });
