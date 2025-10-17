@@ -144,19 +144,26 @@ function attachEventListeners() {
   window.addEventListener("resize", debounce(() => sortAndRedistribute(), 200));
 }
 
+// 討伐報告モーダルの送信ボタン
 DOMElements.reportSubmitBtn.addEventListener("click", () => {
   const mobNo = parseInt(DOMElements.reportModal.dataset.mobNo, 10);
   const timeISO = DOMElements.reportTimeInput.value;
   const memo = DOMElements.reportMemoInput.value;
-  submitReport(mobNo, timeISO, memo);
+
+  submitReport(mobNo, timeISO, memo)
+    .then(() => closeReportModal())
+    .catch(err => console.error("報告送信エラー:", err));
 });
 
+// 湧き潰しボタンのクリック処理
 DOMElements.mobList.addEventListener("click", e => {
   if (e.target.classList.contains("crush-toggle")) {
     const mobNo = parseInt(e.target.dataset.mobNo, 10);
     const locationId = e.target.dataset.locationId;
     const isCurrentlyCulled = e.target.classList.contains("culled");
-    toggleCrushStatus(mobNo, locationId, isCurrentlyCulled);
+
+    toggleCrushStatus(mobNo, locationId, isCurrentlyCulled)
+      .catch(err => console.error("湧き潰し更新エラー:", err));
   }
 });
 
