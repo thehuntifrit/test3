@@ -39,13 +39,23 @@ function createMobCard(mob) {
       <div class="flex justify-between items-start space-x-2">
         <div class="flex flex-col flex-shrink min-w-0">
 
-    <div class="flex items-start gap-2">
-      <span class="rank-icon ${rankConfig.bg} text-white text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full shrink-0">${rankLabel}</span>
-    <div class="flex flex-col">
-      <span class="mob-name text-lg font-bold text-outline truncate max-w-[70vw] sm:max-w-[60vw] md:max-w-[60vw] lg:max-w-[60vw]">${mob.Name}</span>
-      <span class="text-xs text-gray-400 mt-0.5">${mob.Area} (${mob.Expansion})</span>
-    </div>
+<div class="flex items-start gap-2">
+  <!-- 左：ランクアイコン -->
+  <span class="rank-icon ${rankConfig.bg} text-white text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full shrink-0">
+    ${rankLabel}
+  </span>
+
+  <!-- 右：モブ名（上）＋エリア名（下） -->
+  <div class="flex flex-col">
+    <span class="mob-name text-lg font-bold text-outline truncate max-w-[70vw] sm:max-w-[60vw] md:max-w-[60vw] lg:max-w-[60vw]">
+      ${mob.Name}
+    </span>
+    <span class="text-xs text-gray-400 mt-0.5">
+      ${mob.Area} (${mob.Expansion})
+    </span>
   </div>
+</div>
+
         <div class="flex-shrink-0 flex flex-col space-y-1 items-end" style="min-width: 120px;">
           ${rank === 'A' || rank === 'F'
             ? `<button data-report-type="instant" data-mob-no="${mob.No}" class="px-2 py-0.5 text-xs rounded bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-semibold transition">即時<br>報告</button>`
