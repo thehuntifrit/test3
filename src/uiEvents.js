@@ -2,7 +2,7 @@
 // uiEvents.js
 import { getState, setFilter, setOpenMobCardNo } from "./store.js";
 import { renderAreaFilterPanel, sortAndRedistribute } from "./filter.js";
-import { DOMElements, openReportModal, closeReportModal, submitReport, toJstAdjustedIsoString } from "./modal.js";
+import { DOMElements, openReportModal, closeReportModal, toJstAdjustedIsoString } from "./modal.js";
 import { DOM, FILTER_TO_DATA_RANK_MAP } from "./uiShared.js";
 import { submitReport, toggleCrushStatus } from "./firestore.js";
 import { debounce } from "./utils.js";
