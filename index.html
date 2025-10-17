@@ -64,7 +64,11 @@
             </form>
         </div>
     </div>
-
+    <!-- 🔧 拡大表示用のモーダル -->
+    <div id="image-zoom-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
+        <img id="zoomed-image" src="" alt="拡大画像" class="max-w-full max-h-full rounded shadow-lg">
+    </div>
+    
     <script type="module" src="./src/utils.js"></script>
     <script type="module" src="./src/store.js"></script>
     <script type="module" src="./src/firebase.js"></script>
