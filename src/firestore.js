@@ -1,6 +1,6 @@
 // firestore.js
 import { db } from "./firebase.js";
-import { collection, addDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+import { collection, addDoc, onSnapshot, doc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
 function subscribeMobStatusDocs(onUpdate) {
   const docIds = ["s_latest", "a_latest", "f_latest"];
