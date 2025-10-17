@@ -14,8 +14,8 @@ const FIREBASE_CONFIG = {
     measurementId: "G-J1KGFE15XP"
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 const auth = getAuth(app);
 const functions = getFunctions(app, "asia-northeast2");
 
