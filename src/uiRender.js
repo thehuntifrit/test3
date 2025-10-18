@@ -35,7 +35,7 @@ function createMobCard(mob) {
         : "";
 
 const cardHeaderHTML = `
-<div class="px-1.5 py-0.5 space-y-0.5 bg-gray-800/70" data-toggle="card-header">
+<div class="px-1.5 py-1 space-y-1 bg-gray-800/70" data-toggle="card-header">
     <div class="grid grid-cols-[auto_1fr_auto] items-center w-full gap-2">
         <span class="w-6 h-6 flex items-center justify-center rounded-full text-white text-xs font-bold ${rankConfig.bg}">
       ${rankLabel}
@@ -63,14 +63,14 @@ const cardHeaderHTML = `
     <div class="progress-text absolute inset-0 flex items-center justify-center text-sm font-semibold"
          style="line-height: 1;">
       ${progressText}
-      </div>
+    </div>
   </div>
 </div>
 `;
 
 const expandablePanelHTML = isExpandable ? `
 <div class="expandable-panel ${isOpen ? 'open' : ''}">
-  <div class="px-2 py-0.5 text-sm space-y-0.5">
+  <div class="px-2 py-1 text-sm space-y-1.5">
     <div class="flex justify-between items-start flex-wrap">
       <div class="w-full text-right text-sm font-mono text-blue-300">次回: ${nextTimeDisplay}</div>
       <div class="w-full text-right text-xs text-gray-400 pt-1">前回: ${lastKillDisplay}</div>
