@@ -52,7 +52,7 @@ const cardHeaderHTML = `
     <!-- 右端：報告ボタン（即時報告と同じ構造） -->
     <div class="flex-shrink-0 flex items-center justify-end">
       <button data-report-type="${rank === 'A' || rank === 'F' ? 'instant' : 'modal'}" data-mob-no="${mob.No}"
-        class="w-8 h-8 flex items-center justify-center text-[14px] rounded bg-${rank === 'A' || rank === 'F' ? 'yellow' : 'green'}-500 
+        class="w-8 h-8 flex items-center justify-center text-[13px] rounded bg-${rank === 'A' || rank === 'F' ? 'yellow' : 'green'}-500 
         hover:bg-${rank === 'A' || rank === 'F' ? 'yellow' : 'green'}-400 text-gray-900 
         font-semibold transition text-center leading-tight whitespace-pre-line">${rank === 'A' || rank === 'F' ? '即時\n報告' : '報告\nする'}</button>
     </div>
@@ -72,7 +72,7 @@ const cardHeaderHTML = `
 
 const expandablePanelHTML = isExpandable ? `
 <div class="expandable-panel ${isOpen ? 'open' : ''}">
-  <div class="px-2 py-1 text-sm space-y-1.5">
+  <div class="px-1 py-1 text-sm space-y-1.5">
     <div class="flex justify-between items-start flex-wrap">
       <div class="w-full text-right text-sm font-mono text-blue-300">次回: ${nextTimeDisplay}</div>
       <div class="w-full text-right text-xs text-gray-400 pt-1">前回: ${lastKillDisplay}</div>
@@ -81,7 +81,7 @@ const expandablePanelHTML = isExpandable ? `
       <div class="w-full text-gray-300 mb-2">${processText(mob.Condition)}</div>
     </div>
     ${mob.Map && rank === 'S' ? `
-    <div class="map-content py-1.5 flex justify-center relative"><img src="./maps/${mob.Map}" alt="${mob.Area} Map"
+    <div class="map-content py-0.5 flex justify-center relative"><img src="./maps/${mob.Map}" alt="${mob.Area} Map"
            class="mob-crush-map w-full h-auto rounded shadow-lg border border-gray-600" data-mob-no="${mob.No}">
       <div class="map-overlay absolute inset-0" data-mob-no="${mob.No}">${spawnPointsHtml}</div>
     </div>
