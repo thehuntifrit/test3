@@ -6,6 +6,7 @@ import { db } from "./firebase.js";
 import { getState } from "./store.js";
 import { toJstAdjustedIsoString } from "./utils.js";
 
+// モーダルを開く
 function openReportModal(mobNo) {
   const mob = getState().mobs.find(m => m.No === mobNo);
   if (!mob) return;
@@ -19,6 +20,13 @@ function openReportModal(mobNo) {
   DOM.modalStatus.textContent = "";
   DOM.reportModal.classList.remove("hidden");
   DOM.reportModal.classList.add("flex");
+}
+
+// モーダルを閉じる
+function closeReportModal() {
+  DOM.reportModal.classList.add("hidden");
+  DOM.modalTimeInput.value = "";
+  DOM.modalMemoInput.value = "";
 }
 
 async function submitReport(mobNo, timeISO, memo) {
