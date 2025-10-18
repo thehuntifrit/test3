@@ -4,13 +4,7 @@ import { displayStatus } from "./utils.js";
 import { addDoc, collection } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 import { db } from "./firebase.js";
 import { getState } from "./store.js";
-
-function toJstAdjustedIsoString(date) {
-  const offsetMs = date.getTimezoneOffset() * 60000;
-  const jstOffsetMs = 9 * 60 * 60 * 1000;
-  const jstTime = date.getTime() - offsetMs + jstOffsetMs;
-  return new Date(jstTime).toISOString().slice(0, 16);
-}
+import { toJstAdjustedIsoString } from "./utils.js";
 
 function openReportModal(mobNo) {
   const DOM = getDOMElements();
