@@ -13,14 +13,17 @@ function createMobCard(mob) {
     const progressText = mob.repopInfo?.timeRemaining || "Calculating...";
     const lastKillDisplay = formatLastKillTime(mob.last_kill_time);
     const absFmt = { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tokyo' };
-    const nextTimeDisplay = mob.repopInfo?.nextMinRepopDate ? new Intl.DateTimeFormat('ja-JP', absFmt).format(mob.repopInfo.nextMinRepopDate) : '未確定';
-    const prevTimeDisplay = mob.last_kill_time > 0 ? new Intl.DateTimeFormat('ja-JP', absFmt).format(new Date(mob.last_kill_time * 1000)) : '未報告';
+    const nextTimeDisplay = mob.repopInfo?.nextMinRepopDate ? new Intl.DateTimeFormat('ja-JP',
+        absFmt).format(mob.repopInfo.nextMinRepopDate) : '未確定';
+    const prevTimeDisplay = mob.last_kill_time > 0 ? new Intl.DateTimeFormat('ja-JP', absFmt).format(new
+        Date(mob.last_kill_time * 1000)) : '未報告';
 
     const isExpandable = rank === "S";
     const { openMobCardNo } = getState();
     const isOpen = isExpandable && mob.No === openMobCardNo;
 
-    const isS_LastOne = rank === "S" && mob.spawn_points && mob.spawn_points.some(p => p.is_last_one && (p.mob_ranks.includes("S") || p.mob_ranks.includes("A")));
+    const isS_LastOne = rank === "S" && mob.spawn_points && mob.spawn_points.some(p => p.is_last_one &&
+        (p.mob_ranks.includes("S") || p.mob_ranks.includes("A")));
     const spawnPointsHtml = (rank === "S" && mob.Map)
         ? (mob.spawn_points ?? []).map(point => drawSpawnPoint(
             point,
@@ -34,68 +37,70 @@ function createMobCard(mob) {
         )).join("")
         : "";
 
-const cardHeaderHTML = `
+    const cardHeaderHTML = `
 <div class="px-1.5 py-0.5 space-y-0.5 bg-gray-800/70" data-toggle="card-header">
-    <div class="grid grid-cols-[auto_1fr_auto] items-center w-full gap-2">
-        <span class="w-6 h-6 flex items-center justify-center rounded-full text-white text-xs font-bold ${rankConfig.bg}">
-      ${rankLabel}
-    </span>
+        <div class="grid grid-cols-[auto_1fr_auto] items-center w-full gap-2">
+                <span
+            class="w-6 h-6 flex items-center justify-center rounded-full text-white text-xs font-bold ${rankConfig.bg}">
+                  ${rankLabel}
+                </span>
 
-        <div class="flex flex-col min-w-0">
-      <span class="text-sm font-bold truncate">${mob.Name}</span>
-      <span class="text-xs text-gray-400 truncate">${mob.Area} (${mob.Expansion})</span>
-    </div>
+                <div class="flex flex-col min-w-0">
+                  <span class="text-sm font-bold truncate">${mob.Name}</span>
+                  <span class="text-xs text-gray-400 truncate">${mob.Area} (${mob.Expansion})</span>
+                </div>
 
-        <div class="flex-shrink-0 flex items-center justify-end">
-      <button
-        data-report-type="${rank === 'A' || rank === 'F' ? 'instant' : 'modal'}"
-        data-mob-no="${mob.No}"
-        class="w-10 h-10 flex items-center justify-center text-xs rounded bg-${rank === 'A' || rank === 'F' ? 'yellow' : 'green'}-500 hover:bg-${rank === 'A' || rank === 'F' ? 'yellow' : 'green'}-400 text-gray-900 font-semibold transition text-center leading-tight whitespace-pre-line"
-      >
-        ${rank === 'A' || rank === 'F' ? '即時\n報告' : '報告\nする'}
-      </button>
-    </div>
-  </div>
+                <div class="flex-shrink-0 flex items-center justify-end">
+                  <button         data-report-type="${rank === 'A' || rank === 'F' ? 'instant' : 'modal'}"        
+                data-mob-no="${mob.No}"        
+                class="w-10 h-10 flex items-center justify-center text-xs rounded bg-${rank === 'A' || rank === 'F' ? 'yellow' : 'green'}-500 hover:bg-${rank === 'A' || rank === 'F' ? 'yellow' : 'green'}-400 text-gray-900 font-semibold transition text-center leading-tight whitespace-pre-line"
+                     >
+                        ${rank === 'A' || rank === 'F' ? '即時\n報告' : '報告\nする'}
+                      </button>
+                </div>
+          </div>
 
-    <div class="progress-bar-wrapper h-6 rounded-full relative overflow-hidden transition-all duration-100 ease-linear">
-    <div class="progress-bar-bg absolute left-0 top-0 h-full rounded-full transition-all duration-100 ease-linear"
-         style="width: ${mob.repopInfo?.elapsedPercent || 0}%"></div>
-    <div class="progress-text absolute inset-0 flex items-center justify-center text-sm font-semibold"
-         style="line-height: 1;">
-      ${progressText}
-      </div>
-  </div>
+        <div
+        class="progress-bar-wrapper h-6 rounded-full relative overflow-hidden transition-all duration-100 ease-linear">
+            <div
+            class="progress-bar-bg absolute left-0 top-0 h-full rounded-full transition-all duration-100 ease-linear"  
+                   style="width: ${mob.repopInfo?.elapsedPercent || 0}%"></div>
+            <div class="progress-text absolute inset-0 flex items-center justify-center text-sm font-semibold"        
+             style="line-height: 1;">
+                  ${progressText}
+                  </div>
+          </div>
 </div>
 `;
 
-const expandablePanelHTML = isExpandable ? `
+    const expandablePanelHTML = isExpandable ? `
 <div class="expandable-panel ${isOpen ? 'open' : ''}">
-  <div class="px-2 py-0.5 text-sm space-y-0.5">
-    <div class="flex justify-between items-start flex-wrap">
-      <div class="w-full text-right text-sm font-mono text-blue-300">次回: ${nextTimeDisplay}</div>
-      <div class="w-full text-right text-xs text-gray-400 pt-1">前回: ${lastKillDisplay}</div>
-      <div class="w-full text-left text-sm text-gray-300 mb-2">Memo: ${mob.last_kill_memo || 'なし'}</div>
-      <div class="w-full font-semibold text-yellow-300 border-t border-gray-600">抽出条件</div>
-      <div class="w-full text-gray-300 mb-2">${processText(mob.Condition)}</div>
-    </div>
-    ${mob.Map && rank === 'S' ? `
-    <div class="map-content py-1.5 flex justify-center relative">
-      <img src="./maps/${mob.Map}" alt="${mob.Area} Map"
-           class="mob-crush-map w-full h-auto rounded shadow-lg border border-gray-600" data-mob-no="${mob.No}">
-      <div class="map-overlay absolute inset-0" data-mob-no="${mob.No}">
-        ${spawnPointsHtml}
-      </div>
-    </div>
-    ` : ''}
-  </div>
+      <div class="px-2 py-0.5 text-sm space-y-0.5">
+            <div class="flex justify-between items-start flex-wrap">
+                  <div class="w-full text-right text-sm font-mono text-blue-300">次回: ${nextTimeDisplay}</div>
+                  <div class="w-full text-right text-xs text-gray-400 pt-1">前回: ${lastKillDisplay}</div>
+                  <div class="w-full text-left text-sm text-gray-300 mb-2">Memo: ${mob.last_kill_memo || 'なし'}</div>
+                  <div class="w-full font-semibold text-yellow-300 border-t border-gray-600">抽出条件</div>
+                  <div class="w-full text-gray-300 mb-2">${processText(mob.Condition)}</div>
+                </div>
+            ${mob.Map && rank === 'S' ? `
+            <div class="map-content py-1.5 flex justify-center relative">
+                  <img src="./maps/${mob.Map}" alt="${mob.Area} Map"          
+                 class="mob-crush-map w-full h-auto rounded shadow-lg border border-gray-600" data-mob-no="${mob.No}">
+                  <div class="map-overlay absolute inset-0" data-mob-no="${mob.No}">
+                        ${spawnPointsHtml}
+                      </div>
+                </div>
+            ` : ''}
+          </div>
 </div>
 ` : '';
 
-return `
+    return `
 <div class="mob-card bg-gray-700 rounded-lg shadow-xl overflow-hidden cursor-pointer border border-gray-700 transition duration-150"
-     data-mob-no="${mob.No}" data-rank="${rank}">
-  ${cardHeaderHTML}
-  ${expandablePanelHTML}
+         data-mob-no="${mob.No}" data-rank="${rank}">
+      ${cardHeaderHTML}
+      ${expandablePanelHTML}
 </div>
 `;
 }
@@ -215,68 +220,61 @@ function updateProgressBars() {
         wrapper.classList.remove(PROGRESS_CLASSES.MAX_OVER_BLINK);
 
         if (status === "PopWindow") {
-            if (elapsedPercent <= 60) bar.classList.add(PROGRESS_CLASSES.P0_60);
-            else if (elapsedPercent <= 80) bar.classList.add(PROGRESS_CLASSES.P60_80);
-            else bar.classList.add(PROGRESS_CLASSES.P80_100);
+            if (elapsedPercent <= 60) bar.classList.add(PROGRESS_CLASSES.P0_60); else if (elapsedPercent <= 80)
+                bar.classList.add(PROGRESS_CLASSES.P60_80); else bar.classList.add(PROGRESS_CLASSES.P80_100);
             text.classList.add(PROGRESS_CLASSES.TEXT_POP);
         } else if (status === "MaxOver") {
-            bar.classList.add(PROGRESS_CLASSES.P80_100);
-            text.classList.add(PROGRESS_CLASSES.TEXT_POP);
+            bar.classList.add(PROGRESS_CLASSES.P80_100); text.classList.add(PROGRESS_CLASSES.TEXT_POP);
             wrapper.classList.add(PROGRESS_CLASSES.MAX_OVER_BLINK);
-        } else {
-            text.classList.add(PROGRESS_CLASSES.TEXT_NEXT);
-        }
+        } else { text.classList.add(PROGRESS_CLASSES.TEXT_NEXT); }
     });
-}
+} // 拡大表示イベント document.addEventListener("click", e=> {
+const img = e.target.closest(".mob-crush-map");
+if (!img) return;
 
-// 拡大表示イベント
-document.addEventListener("click", e => {
-    const img = e.target.closest(".mob-crush-map");
-    if (!img) return;
+const modal = document.getElementById("crush-map-modal");
+const zoomed = document.getElementById("crush-map-zoomed");
+const layer = document.getElementById("crush-point-layer");
 
-    const modal = document.getElementById("crush-map-modal");
-    const zoomed = document.getElementById("crush-map-zoomed");
-    const layer = document.getElementById("crush-point-layer");
+zoomed.src = img.src;
+modal.classList.remove("hidden");
 
-    zoomed.src = img.src;
-    modal.classList.remove("hidden");
+const mobNo = img.dataset.mobNo;
+const mobData = getState().mobs.find(m => m.No === mobNo);
+if (!mobData || !mobData.spawn_points) return;
 
-    const mobNo = img.dataset.mobNo;
-    const mobData = getState().mobs.find(m => m.No === mobNo);
-    if (!mobData || !mobData.spawn_points) return;
+zoomed.onload = () => {
+    const w = zoomed.width;
+    const h = zoomed.height;
+    layer.innerHTML = "";
 
-    zoomed.onload = () => {
-        const w = zoomed.width;
-        const h = zoomed.height;
-        layer.innerHTML = "";
+    mobData.spawn_points.forEach(p => {
+        const x = (p.x / 100) * w;
+        const y = (p.y / 100) * h;
 
-        mobData.spawn_points.forEach(p => {
-            const x = (p.x / 100) * w;
-            const y = (p.y / 100) * h;
+        const dot = document.createElement("div");
+        dot.className = "spawn-point";
+        dot.style.left = `${x}px`;
+        dot.style.top = `${y}px`;
 
-            const dot = document.createElement("div");
-            dot.className = "spawn-point";
-            dot.style.left = `${x}px`;
-            dot.style.top = `${y}px`;
+        if (["S", "A"].includes(p.mob_ranks[0])) {
+            dot.classList.add("spawn-point-sa", "spawn-point-shadow-sa");
+        } else {
+            dot.classList.add("spawn-point-b-only");
+        }
 
-            if (["S", "A"].includes(p.mob_ranks[0])) {
-                dot.classList.add("spawn-point-sa", "spawn-point-shadow-sa");
-            } else {
-                dot.classList.add("spawn-point-b-only");
-            }
+        if (mobData.spawn_cull_status?.[p.id]) {
+            dot.classList.add("spawn-point-culled", "culled-with-white-border");
+        }
 
-            if (mobData.spawn_cull_status?.[p.id]) {
-                dot.classList.add("spawn-point-culled", "culled-with-white-border");
-            }
+        if (p.is_last_one) {
+            dot.classList.add("spawn-point-lastone", "spawn-point-shadow-lastone");
+        }
 
-            if (p.is_last_one) {
-                dot.classList.add("spawn-point-lastone", "spawn-point-shadow-lastone");
-            }
-
-            layer.appendChild(dot);
-        });
-    };
-});
+        layer.appendChild(dot);
+    });
+};
+    });
 
 document.getElementById("crush-map-modal").addEventListener("click", () => {
     document.getElementById("crush-map-modal").classList.add("hidden");
