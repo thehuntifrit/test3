@@ -1,4 +1,3 @@
-// cal.js
 import { formatDuration } from "./utils.js";
 
 function calculateRepop(mob) {
@@ -19,7 +18,17 @@ function calculateRepop(mob) {
     timeRemaining = `Next: ${formatDuration(minRepop - now)}`;
     status = "Next";
   } else if (now < minRepop) {
-    timeRemaining = `Next: ${formatDuration(minRepop - now)}`;
+    if (now >= minRepop - 3600) {
+      timeRemaining = `Next: ${formatDuration(minRepop - now)}`;
+    } else {
+      const nextDate = new Date(minRepop * 1000);
+      timeRemaining = `Next: ${nextDate.toLocaleString('ja-JP', {
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      })}`;
+    }
     status = "Next";
   } else if (now >= minRepop && now < maxRepop) {
     elapsedPercent = ((now - minRepop) / (maxRepop - minRepop)) * 100;
