@@ -38,29 +38,28 @@ function createMobCard(mob) {
 <div class="p-1.5 space-y-1 bg-gray-800/70" data-toggle="card-header">
     <div class="flex justify-between items-start gap-2">
 
-<div class="flex items-center justify-between w-full gap-2">
-  <!-- 左端：ランクアイコン -->
-  <span class="w-6 h-6 flex items-center justify-center rounded-full text-white text-xs font-bold shrink-0 ${rankConfig.bg}">
+<div class="grid grid-cols-[auto_1fr_auto] items-center w-full gap-2">
+  <!-- 左：ランク -->
+  <span class="w-6 h-6 flex items-center justify-center rounded-full text-white text-xs font-bold ${rankConfig.bg}">
     ${rankLabel}
   </span>
 
-  <!-- 中央：モブ名＋エリア名（動的幅＋省略） -->
-  <div class="flex flex-col flex-grow min-w-0">
-    <span class="text-base font-bold truncate">${mob.Name}</span>
+  <!-- 中央：モブ名＋エリア名 -->
+  <div class="flex flex-col min-w-0">
+    <span class="text-sm font-bold truncate">${mob.Name}</span>
     <span class="text-xs text-gray-400 truncate">${mob.Area} (${mob.Expansion})</span>
   </div>
 
-  <!-- 右端：報告ボタン（正方形・中央揃え） -->
-  <div class="flex-shrink-0 flex items-center justify-end">
-    <button
-      data-report-type="${rank === 'A' || rank === 'F' ? 'instant' : 'modal'}"
-      data-mob-no="${mob.No}"
-      class="w-14 h-14 flex flex-col items-center justify-center text-[10px] leading-tight rounded bg-${rank === 'A' || rank === 'F' ? 'yellow' : 'green'}-500 hover:bg-${rank === 'A' || rank === 'F' ? 'yellow' : 'green'}-400 text-gray-900 font-semibold transition text-center"
-    >
-      ${rank === 'A' || rank === 'F' ? '即時報告' : '報告する'}
-    </button>
-  </div>
+  <!-- 右：報告ボタン -->
+  <button
+    data-report-type="${rank === 'A' || rank === 'F' ? 'instant' : 'modal'}"
+    data-mob-no="${mob.No}"
+    class="w-12 h-12 flex items-center justify-center text-[10px] rounded bg-${rank === 'A' || rank === 'F' ? 'yellow' : 'green'}-500 hover:bg-${rank === 'A' || rank === 'F' ? 'yellow' : 'green'}-400 text-gray-900 font-semibold transition text-center leading-tight whitespace-pre-line"
+  >
+    ${rank === 'A' || rank === 'F' ? '即時\n報告' : '報告\nする'}
+  </button>
 </div>
+
 
         <!-- プログレスバー -->
         <div
