@@ -50,7 +50,8 @@ function createMobCard(mob) {
     <span class="text-xs text-gray-400 truncate">${mob.Area} (${mob.Expansion})</span>
   </div>
 
-  <!-- 右：報告ボタン -->
+<!-- 右端：報告ボタン（即時報告と同じ構造） -->
+<div class="flex-shrink-0 flex items-center justify-end">
   <button
     data-report-type="${rank === 'A' || rank === 'F' ? 'instant' : 'modal'}"
     data-mob-no="${mob.No}"
@@ -59,7 +60,6 @@ function createMobCard(mob) {
     ${rank === 'A' || rank === 'F' ? '即時\n報告' : '報告\nする'}
   </button>
 </div>
-
 
         <!-- プログレスバー -->
         <div
