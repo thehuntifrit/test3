@@ -1,4 +1,3 @@
-
 // uiEvents.js
 import { state, getState, setFilter, setOpenMobCardNo } from "./store.js";
 import { renderRankTabs, renderAreaFilterPanel, sortAndRedistribute, toggleAreaFilterPanel } from "./filter.js";
