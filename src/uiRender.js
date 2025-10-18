@@ -38,33 +38,29 @@ function createMobCard(mob) {
 <div class="p-1.5 space-y-1 bg-gray-800/70" data-toggle="card-header">
     <div class="flex justify-between items-start gap-2">
 
-        <div class="flex items-center justify-between w-full gap-2">
-            <!-- 左：ランクアイコン -->
-            <span
-                class="rank-icon ${rankConfig.bg} text-white text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full shrink-0">
-                ${rankLabel}
-            </span>
+<div class="flex items-center justify-between w-full gap-2">
+  <!-- 左端：ランクアイコン -->
+  <span class="w-6 h-6 flex items-center justify-center rounded-full text-white text-xs font-bold shrink-0 ${rankConfig.bg}">
+    ${rankLabel}
+  </span>
 
-            <!-- 中央：モブ名＋エリア名 -->
-            <div class="flex flex-col flex-grow min-w-0">
-                <span class="mob-name text-base font-bold truncate">
-                    ${mob.Name}
-                </span>
-                <span class="text-xs text-gray-400 truncate">
-                    ${mob.Area} (${mob.Expansion})
-                </span>
-            </div>
+  <!-- 中央：モブ名＋エリア名（動的幅＋省略） -->
+  <div class="flex flex-col flex-grow min-w-0">
+    <span class="text-base font-bold truncate">${mob.Name}</span>
+    <span class="text-xs text-gray-400 truncate">${mob.Area} (${mob.Expansion})</span>
+  </div>
 
-            <!-- 右：報告ボタン（2行・高さ揃え・右端固定） -->
-            <div class="flex-shrink-0 flex items-center">
-                <button data-report-type="${rank === 'A' || rank === 'F' ? 'instant' : 'modal'}" data-mob-no="${mob.No}"
-                    class="px-2 py-1 text-xs rounded bg-${rank === 'A' || rank === 'F' ? 'yellow' : 'green'}-500 hover:bg-${rank === 'A' || rank === 'F' ? 'yellow' : 'green'}-400 text-gray-900 font-semibold text-center leading-tight"
-                    style="line-height: 1.2; white-space: pre-line;">
-                    ${rank === 'A' || rank === 'F' ? '即時\n報告' : '報告\nする'}
-                </button>
-            </div>
-        </div>
-
+  <!-- 右端：報告ボタン（正方形・中央揃え） -->
+  <div class="flex-shrink-0 flex items-center justify-end">
+    <button
+      data-report-type="${rank === 'A' || rank === 'F' ? 'instant' : 'modal'}"
+      data-mob-no="${mob.No}"
+      class="w-14 h-14 flex flex-col items-center justify-center text-[10px] leading-tight rounded bg-${rank === 'A' || rank === 'F' ? 'yellow' : 'green'}-500 hover:bg-${rank === 'A' || rank === 'F' ? 'yellow' : 'green'}-400 text-gray-900 font-semibold transition text-center"
+    >
+      ${rank === 'A' || rank === 'F' ? '即時報告' : '報告する'}
+    </button>
+  </div>
+</div>
 
         <!-- プログレスバー -->
         <div
