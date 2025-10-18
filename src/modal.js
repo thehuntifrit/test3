@@ -7,9 +7,9 @@ import { getState } from "./store.js";
 import { toJstAdjustedIsoString } from "./utils.js";
 
 function openReportModal(mobNo) {
-  const DOM = getDOMElements();
   const mob = getState().mobs.find(m => m.No === mobNo);
   if (!mob) return;
+
   const iso = toJstAdjustedIsoString(new Date());
   DOM.reportForm.dataset.mobNo = String(mobNo);
   DOM.modalMobName.textContent = `対象: ${mob.Name} (${mob.Area})`;
@@ -54,23 +54,6 @@ async function submitReport(mobNo, timeISO, memo) {
     DOM.modalStatus.textContent = `送信エラー: ${err.message || "通信失敗"}`;
     displayStatus(`LKT報告エラー: ${err.message || "通信失敗"}`, "error");
   }
-}
-
-import { DOM } from "./uiShared.js"; // すでにある定義を利用
-
-function openReportModal(mobNo) {
-  const mob = getState().mobs.find(m => m.No === mobNo);
-  if (!mob) return;
-
-  const iso = toJstAdjustedIsoString(new Date());
-  DOM.reportForm.dataset.mobNo = String(mobNo);
-  DOM.modalMobName.textContent = `対象: ${mob.Name} (${mob.Area})`;
-  DOM.modalTimeInput.value = iso;
-  DOM.modalMemoInput.value = mob.last_kill_memo || "";
-  DOM.modalMemoInput.placeholder = `LKTとして記録されます。例: ${mob.Area} (X:00.0, Y:00.0) // ログアウトします`;
-  DOM.modalStatus.textContent = "";
-  DOM.reportModal.classList.remove("hidden");
-  DOM.reportModal.classList.add("flex");
 }
 
 export const DOMElements = {
