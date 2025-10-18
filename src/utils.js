@@ -1,4 +1,5 @@
 // utils.js
+
 function drawSpawnPoint(point, spawnCullStatus, mobNo, rank, isLastOne, isS_LastOne, lastKillTime, prevKillTime) {
   const culled = spawnCullStatus?.[point.id] === true;
   const classes = [
