@@ -54,7 +54,7 @@ const cardHeaderHTML = `
       <button
         data-report-type="${rank === 'A' || rank === 'F' ? 'instant' : 'modal'}"
         data-mob-no="${mob.No}"
-        class="w-12 h-12 flex items-center justify-center text-[10px] rounded bg-${rank === 'A' || rank === 'F' ? 'yellow' : 'green'}-500 hover:bg-${rank === 'A' || rank === 'F' ? 'yellow' : 'green'}-400 text-gray-900 font-semibold transition text-center leading-tight whitespace-pre-line"
+        class="w-10 h-10 flex items-center justify-center text-[12px] rounded bg-${rank === 'A' || rank === 'F' ? 'yellow' : 'green'}-500 hover:bg-${rank === 'A' || rank === 'F' ? 'yellow' : 'green'}-400 text-gray-900 font-semibold transition text-center leading-tight whitespace-pre-line"
       >
         ${rank === 'A' || rank === 'F' ? '即時\n報告' : '報告\nする'}
       </button>
