@@ -47,7 +47,8 @@ function createMobCard(mob) {
 
             <!-- モブ名＋エリア名 -->
             <div class="flex flex-col min-w-0">
-                <span class="mob-name text-lg font-bold text-outline truncate max-w-[70vw] sm:max-w-[60vw] md:max-w-[60vw] lg:max-w-[60vw] max-w-full">
+                <span
+                    class="mob-name text-lg font-bold text-outline truncate max-w-[70vw] sm:max-w-[60vw] md:max-w-[60vw] lg:max-w-[60vw] max-w-full">
                     ${mob.Name}
                 </span>
                 <span class="text-xs text-gray-400 mt-0.5 truncate">
@@ -57,27 +58,23 @@ function createMobCard(mob) {
         </div>
 
         <!-- 右：報告ボタン -->
-        <div class="flex-shrink-0 flex flex-col space-y-1 items-end" style="min-width: 120px;">
-            ${rank === 'A' || rank === 'F'
-            ? `<button data-report-type="instant" data-mob-no="${mob.No}"
-                class="px-2 py-0.5 text-xs rounded bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-semibold transition">即時<br>報告</button>`
-            : `<button data-report-type="modal" data-mob-no="${mob.No}"
-                class="px-2 py-0.5 text-xs rounded bg-green-500 hover:bg-green-400 text-gray-900 font-semibold transition">報告<br>する</button>`
-            }
+        <div class="flex-shrink-0 flex items-center justify-end" style="min-width: 120px;">
+            <button data-report-type="${rank === 'A' || rank === 'F' ? 'instant' : 'modal'}" data-mob-no="${mob.No}"
+                class="w-16 h-16 flex flex-col items-center justify-center text-[11px] rounded bg-${rank === 'A' || rank === 'F' ? 'yellow' : 'green'}-500 hover:bg-${rank === 'A' || rank === 'F' ? 'yellow' : 'green'}-400 text-gray-900 font-semibold transition shrink-0">
+                ${rank === 'A' || rank === 'F' ? '即時<br>報告' : '報告<br>する'}
+            </button>
         </div>
-    </div>
 
-    <!-- プログレスバー -->
-    <div class="progress-bar-wrapper h-4 rounded-full relative overflow-hidden transition-all duration-100 ease-linear">
-        <div class="progress-bar-bg absolute left-0 top-0 h-full rounded-full transition-all duration-100 ease-linear"
-            style="width: ${mob.repopInfo?.elapsedPercent || 0}%"></div>
-        <div class="progress-text absolute inset-0 flex items-center justify-center text-xs font-semibold"
-            style="line-height: 1;">
-            ${progressText}
+        <!-- プログレスバー -->
+        <div
+            class="progress-bar-wrapper h-6 rounded-full relative overflow-hidden transition-all duration-100 ease-linear">
+            <div class="progress-bar-bg absolute left-0 top-0 h-full rounded-full transition-all duration-100 ease-linear"
+                style="width: ${mob.repopInfo?.elapsedPercent || 0}%"></div>
+            <div class="progress-text absolute inset-0 flex items-center justify-center text-sm font-semibold"
+                style="line-height: 1;">
+                ${progressText}
+            </div>
         </div>
-    </div>
-</div>
-
 `;
 
 const expandablePanelHTML = isExpandable ? `
