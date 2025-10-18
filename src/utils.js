@@ -51,13 +51,10 @@ const cardHeaderHTML = `
 
     <!-- 右端：報告ボタン（即時報告と同じ構造） -->
     <div class="flex-shrink-0 flex items-center justify-end">
-      <button
-        data-report-type="${rank === 'A' || rank === 'F' ? 'instant' : 'modal'}" data-mob-no="${mob.No}"
+      <button data-report-type="${rank === 'A' || rank === 'F' ? 'instant' : 'modal'}" data-mob-no="${mob.No}"
         class="w-8 h-8 flex items-center justify-center text-[12px] rounded bg-${rank === 'A' || rank === 'F' ? 'yellow' : 'green'}-500 
         hover:bg-${rank === 'A' || rank === 'F' ? 'yellow' : 'green'}-400 text-gray-900 
-        font-semibold transition text-center leading-tight whitespace-pre-line">
-        ${rank === 'A' || rank === 'F' ? '即時\n報告' : '報告\nする'}
-      </button>
+        font-semibold transition text-center leading-tight whitespace-pre-line">${rank === 'A' || rank === 'F' ? '即時\n報告' : '報告\nする'}</button>
     </div>
   </div>
 
