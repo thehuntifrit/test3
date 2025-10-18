@@ -50,7 +50,8 @@ const renderAreaFilterPanel = () => {
 
     const allBtn = document.createElement("button");
     allBtn.textContent = isAllSelected ? "全解除" : "全選択";
-    allBtn.className = `area-filter-btn py-1 text-xs rounded font-semibold text-white text-center transition ${isAllSelected ? "bg-red-500" : "bg-gray-500 hover:bg-gray-400"
+    allBtn.className = `area-filter-btn py-1 text-xs rounded font-semibold text-white text-center transition w-full lg:max-w-[8rem] ${isAllSelected ? "bg-red-500" : "bg-gray-500 hover:bg-gray-400"
+
         }`;
     allBtn.dataset.area = "ALL";
     DOM.areaFilterPanel.appendChild(allBtn);
@@ -65,8 +66,8 @@ const renderAreaFilterPanel = () => {
             const isSelected = currentSet.has(area);
             const btn = document.createElement("button");
             btn.textContent = area;
-            btn.className = `area-filter-btn py-1 text-xs rounded font-semibold text-white text-center transition ${isSelected ? "bg-green-500" : "bg-gray-500 hover:bg-gray-400"
-                }`;
+            btn.className = `area-filter-btn py-1 text-xs rounded font-semibold text-white text-center transition w-full lg:max-w-[8rem] ${isSelected ? "bg-green-500" : "bg-gray-500 hover:bg-gray-400"
+              }`;
             btn.dataset.area = area;
             DOM.areaFilterPanel.appendChild(btn);
         });
