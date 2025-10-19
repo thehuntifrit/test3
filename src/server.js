@@ -4,11 +4,9 @@ import { getFirestore, collection, onSnapshot, addDoc, doc } from "https://www.g
 import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-functions.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-analytics.js";
-
-// 他モジュール依存
-import { getState } from "./store.js";
+import { getState } from "./dataManager.js";
 import { closeReportModal } from "./modal.js";
-import { displayStatus } from "./utils.js";
+import { displayStatus } from "./uiRender.js";
 
 const FIREBASE_CONFIG = {  
   apiKey: "AIzaSyBikwjGsjL_PVFhx3Vj-OeJCocKA_hQOgU",
@@ -22,7 +20,7 @@ const FIREBASE_CONFIG = {
 const app = initializeApp(FIREBASE_CONFIG);
 const db = getFirestore(app);
 const auth = getAuth(app);
-const functionsInstance = getFunctions(app, "asia-northeast1");
+const functions = getFunctions(app, "asia-northeast2");
 const analytics = getAnalytics(app);
 
 async function initializeAuth() {
@@ -37,18 +35,19 @@ async function initializeAuth() {
   });
 }
 
-// ✅ サーバーUTC取得
-export async function getServerTimeUTC() {
-  const getServerTime = httpsCallable(functionsInstance, "getServerTime");
-  const response = await getServerTime();
-  return new Date(response.data.utc_now); // UTC基準
+// --- サーバー時計 ---
+async function getServerTimeUTC() {
+  try {
+    const callable = httpsCallable(functions, "getServerTime");
+    const result = await callable();
+    return new Date(result.data.utc);
+  } catch (err) {
+    console.error("サーバー時計取得エラー:", err);
+    return new Date(); // フォールバック
+  }
 }
 
-// Cloud Functions 呼び出し
-const callUpdateCrushStatus = httpsCallable(functionsInstance, 'crushStatusUpdater');
-const callRevertStatus = httpsCallable(functionsInstance, 'revertStatus');
-
-// Firestore購読
+// --- Firestore購読 ---
 function subscribeMobStatusDocs(onUpdate) {
   const docIds = ["s_latest", "a_latest", "f_latest"];
   const mobStatusDataMap = {};
@@ -75,8 +74,12 @@ function subscribeMobLocations(onUpdate) {
   return unsub;
 }
 
-// 討伐報告
-const submitReport = async (mobNo, timeISO, memo) => {
+// --- Cloud Functions 呼び出し ---
+const callUpdateCrushStatus = httpsCallable(functions, "crushStatusUpdater");
+const callRevertStatus = httpsCallable(functions, "revertStatus");
+
+// --- 討伐報告 ---
+async function submitReport(mobNo, timeISO, memo) {
   const state = getState();
   const userId = state.userId;
   const mobs = state.mobs;
@@ -92,13 +95,12 @@ const submitReport = async (mobNo, timeISO, memo) => {
     return;
   }
 
-  // ✅ サーバーUTC基準に修正
-  const killTimeDate = await getServerTimeUTC();
-
-  const modalStatusEl = document.querySelector("#modal-status");
-  if (modalStatusEl) {
-    modalStatusEl.textContent = "送信中...";
+  const killTimeDate = new Date(timeISO);
+  if (isNaN(killTimeDate)) {
+    displayStatus("時刻形式が不正です。", "error");
+    return;
   }
+
   displayStatus(`${mob.Name} 討伐時間報告中...`);
 
   try {
@@ -106,7 +108,7 @@ const submitReport = async (mobNo, timeISO, memo) => {
       mob_id: mobNo.toString(),
       kill_time: killTimeDate,
       reporter_uid: userId,
-      memo: memo,
+      memo,
       repop_seconds: mob.REPOP_s
     });
 
@@ -114,15 +116,12 @@ const submitReport = async (mobNo, timeISO, memo) => {
     displayStatus("報告が完了しました。データ反映を待っています。", "success");
   } catch (error) {
     console.error("レポート送信エラー:", error);
-    if (modalStatusEl) {
-      modalStatusEl.textContent = "送信エラー: " + (error.message || "通信失敗");
-    }
     displayStatus(`LKT報告エラー: ${error.message || "通信失敗"}`, "error");
   }
-};
+}
 
-// 湧き潰し報告
-const toggleCrushStatus = async (mobNo, locationId, isCurrentlyCulled) => {
+// --- 湧き潰し報告 ---
+async function toggleCrushStatus(mobNo, locationId, isCurrentlyCulled) {
   const state = getState();
   const userId = state.userId;
   const mobs = state.mobs;
@@ -136,33 +135,28 @@ const toggleCrushStatus = async (mobNo, locationId, isCurrentlyCulled) => {
   const mob = mobs.find(m => m.No === mobNo);
   if (!mob) return;
 
-  displayStatus(
-    `${mob.Name} (${locationId}) ${action === "crush" ? "湧き潰し" : "解除"}報告中...`
-  );
+  displayStatus(`${mob.Name} (${locationId}) ${action === "crush" ? "湧き潰し" : "解除"}報告中...`);
 
   try {
     const result = await callUpdateCrushStatus({
       mob_id: mobNo.toString(),
       point_id: locationId,
       type: action === "crush" ? "add" : "remove",
-      userId: userId
+      userId
     });
 
     if (result.data?.success) {
       displayStatus(`${mob.Name} の状態を更新しました。`, "success");
     } else {
-      displayStatus(
-        `更新失敗: ${result.data?.message || "不明なエラー"}`,
-        "error"
-      );
+      displayStatus(`更新失敗: ${result.data?.message || "不明なエラー"}`, "error");
     }
   } catch (error) {
     displayStatus(`湧き潰し報告エラー: ${error.message}`, "error");
   }
-};
+}
 
-// 巻き戻し
-const revertMobStatus = async (mobNo) => {
+// --- 巻き戻し ---
+async function revertMobStatus(mobNo) {
   const state = getState();
   const userId = state.userId;
   const mobs = state.mobs;
@@ -178,28 +172,20 @@ const revertMobStatus = async (mobNo) => {
   displayStatus(`${mob.Name} の状態を巻き戻し中...`, "warning");
 
   try {
-    const result = await callRevertStatus({
-      mob_id: mobNo.toString(),
-    });
-    
+    const result = await callRevertStatus({ mob_id: mobNo.toString() });
     if (result.data?.success) {
       displayStatus(`${mob.Name} の状態を直前のログへ巻き戻しました。`, "success");
     } else {
-      displayStatus(
-        `巻き戻し失敗: ${result.data?.message || "ログデータが見つからないか、巻き戻しに失敗しました。"}`,
-        "error"
-      );
+      displayStatus(`巻き戻し失敗: ${result.data?.message || "ログデータが見つからないか、巻き戻しに失敗しました。"}`, "error");
     }
   } catch (error) {
     console.error("巻き戻しエラー:", error);
     displayStatus(`巻き戻しエラー: ${error.message}`, "error");
   }
-};
+}
 
 export {
-  db, auth, initializeAuth,
-  functionsInstance as functions,
-  getServerTimeUTC,
-  subscribeMobStatusDocs, subscribeMobLocations,
-  submitReport, toggleCrushStatus, revertMobStatus
+  db, auth, initializeAuth, getServerTimeUTC,
+  submitReport, toggleCrushStatus, revertMobStatus,
+  subscribeMobStatusDocs, subscribeMobLocations
 };
