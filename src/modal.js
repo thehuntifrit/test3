@@ -1,76 +1,78 @@
 // modal.js
+
 import { DOM } from "./uiShared.js";
-import { displayStatus } from "./utils.js";
-import { addDoc, collection } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
-import { submitReport } from "./server.js"
-import { db } from "./firebase.js";
-import { getState } from "./store.js";
-import { toJstAdjustedIsoString } from "./utils.js";
+import { getState, getMobByNo } from "./store.js";
+import { toJstAdjustedIsoString, displayStatus } from "./utils.js";
+import { submitReport } from "./server.js";
 
-// モーダルを開く
 function openReportModal(mobNo) {
-  const mob = getState().mobs.find(m => m.No === mobNo);
-  if (!mob) return;
+  const mob = getMobByNo(mobNo);
+  if (!mob) {
+    displayStatus("モブ情報が見つかりません。", "error");
+    return;
+  }
 
-  const iso = toJstAdjustedIsoString(new Date());
-  DOM.reportForm.dataset.mobNo = String(mobNo);
-  DOM.modalMobName.textContent = `対象: ${mob.Name} (${mob.Area})`;
-  DOM.modalTimeInput.value = iso;
-  DOM.modalMemoInput.value = mob.last_kill_memo || "";
-  DOM.modalMemoInput.placeholder = `LKTとして記録されます。例: ${mob.Area} (X:00.0, Y:00.0) // ログアウトします`;
+  DOM.modalMobName.textContent = mob.Name;
+  DOM.modalTimeInput.value = toJstAdjustedIsoString(new Date());
+  DOM.modalMemoInput.value = "";
   DOM.modalStatus.textContent = "";
   DOM.reportModal.classList.remove("hidden");
-  DOM.reportModal.classList.add("flex");
+  DOM.reportModal.dataset.mobNo = mobNo;
 }
 
-// モーダルを閉じる
 function closeReportModal() {
   DOM.reportModal.classList.add("hidden");
-  DOM.modalTimeInput.value = "";
-  DOM.modalMemoInput.value = "";
+  DOM.reportModal.dataset.mobNo = "";
 }
 
-async function submitReport(mobNo, timeISO, memo) {
-  const DOM = getDOMElements();
-  const { userId, mobs } = getState();
-  if (!userId) {
-    displayStatus("認証が完了していません。ページをリロードしてください。", "error");
+function handleReportButtonClick(event) {
+  const btn = event.target.closest("button[data-report-type]");
+  if (!btn) return;
+
+  const mobNo = parseInt(btn.dataset.mobNo, 10);
+  const type = btn.dataset.reportType;
+
+  if (type === "instant") {
+    handleModalSubmit({ mobNo, isInstant: true });
+  } else {
+    openReportModal(mobNo);
+  }
+}
+
+async function handleModalSubmit({ mobNo = null, isInstant = false } = {}) {
+  const state = getState();
+  const mobId = mobNo ?? parseInt(DOM.reportModal.dataset.mobNo, 10);
+  const mob = getMobByNo(mobId);
+  const userId = state.userId;
+
+  if (!mob || !userId) {
+    displayStatus("報告に必要な情報が不足しています。", "error");
     return;
   }
-  const mob = mobs.find(m => m.No === mobNo);
-  if (!mob) {
-    displayStatus("モブデータが見つかりません。", "error");
-    return;
-  }
-  const killTimeDate = new Date(timeISO);
-  if (isNaN(killTimeDate)) {
-    displayStatus("時刻形式が不正です。", "error");
-    return;
-  }
+
+  const timeISO = isInstant
+    ? new Date().toISOString()
+    : DOM.modalTimeInput.value;
+
+  const memo = isInstant ? "" : DOM.modalMemoInput.value;
+
   DOM.modalStatus.textContent = "送信中...";
-  displayStatus(`${mob.Name} 討伐時間報告中...`);
+  displayStatus(`${mob.Name} 討伐報告中...`);
+
   try {
-    await addDoc(collection(db, "reports"), {
-      mob_id: mobNo.toString(),
-      kill_time: killTimeDate,
-      reporter_uid: userId,
-      memo,
-      repop_seconds: mob.REPOP_s
-    });
+    await submitReport(mobId, timeISO, memo);
     closeReportModal();
-    displayStatus("報告が完了しました。データ反映を待っています。", "success");
+    displayStatus("報告が完了しました。", "success");
   } catch (err) {
-    DOM.modalStatus.textContent = `送信エラー: ${err.message || "通信失敗"}`;
-    displayStatus(`LKT報告エラー: ${err.message || "通信失敗"}`, "error");
+    console.error("報告送信エラー:", err);
+    DOM.modalStatus.textContent = "送信エラー";
+    displayStatus("報告送信に失敗しました。", "error");
   }
 }
 
-export const DOMElements = {
-  reportSubmitBtn: document.getElementById("report-submit"),
-  reportModal: document.getElementById("report-modal"),
-  reportTimeInput: document.getElementById("report-time"),
-  reportMemoInput: document.getElementById("report-memo"),
-  mobList: document.getElementById("mob-list")
+export {
+  openReportModal,
+  closeReportModal,
+  handleReportButtonClick,
+  handleModalSubmit
 };
-
-export { openReportModal, closeReportModal, submitReport, toJstAdjustedIsoString };
