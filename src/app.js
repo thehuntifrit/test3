@@ -1,4 +1,5 @@
 // app.js
+import { initializeFirebase, initializeAuth } from "./server.js"
 import { setupApp } from "./dataManager.js";
 import { attachEventListeners } from "./uiEvents.js";
 import { DOM } from "./uiShared.js";
