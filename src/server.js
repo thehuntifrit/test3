@@ -1,73 +1,203 @@
 // server.js
 
-// 🔐 Firebase初期化・認証
-import { initializeApp } from "firebase/app";
-import { getAuth, signInAnonymously } from "firebase/auth";
+// ✅ Firebase SDK（12.4.0 CDN版）
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged, signInAnonymously} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+import { getFunctions, httpsCallable} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-functions.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-analytics.js";
 
-// 🔄 Firestore送受信
-import {
-  getFirestore,
-  collection,
-  addDoc,
-  doc,
-  updateDoc,
-  onSnapshot
-} from "firebase/firestore";
+// ✅ 外部依存
+import { getState } from "./store.js";
+import { DOMElements, closeReportModal } from "./modal.js";
+import { displayStatus } from "./utils.js";
 
-// ⏱️ Cloud Function呼び出し
-import { getFunctions, httpsCallable } from "firebase/functions";
+// ✅ Firebase初期化
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyBikwjGsjL_PVFhx3Vj-OeJCocKA_hQOgU",
+  authDomain: "the-hunt-ifrit.firebaseapp.com",
+  projectId: "the-hunt-ifrit",
+  storageBucket: "the-hunt-ifrit.firebasestorage.app",
+  messagingSenderId: "285578581189",
+  appId: "1:285578581189:web:4d9826ee3f988a7519ccac"
+};
 
-// ✅ 初期化
-export function initializeFirebase() {
-  const firebaseConfig = { /* your config */ };
-  initializeApp(firebaseConfig);
-}
+const app = initializeApp(FIREBASE_CONFIG);
+const db = getFirestore(app);
+const auth = getAuth(app);
+const functions = getFunctions(app, "asia-northeast2");
+const analytics = getAnalytics(app);
 
-export function initializeAuth() {
-  const auth = getAuth();
-  signInAnonymously(auth);
-}
-
-// ✅ サーバー時刻取得
-export async function getServerTimeUTC() {
-  const functions = getFunctions();
-  const getServerTime = httpsCallable(functions, "getServerTime");
-  const response = await getServerTime();
-  return new Date(response.data.utc_now); // UTC基準
-}
-
-// ✅ 報告送信（kill_time はサーバー時刻基準）
-export async function submitReport(mobNo, memo, userId, mob) {
-  const killTimeDate = await getServerTimeUTC();
-
-  await addDoc(collection(getFirestore(), "reports"), {
-    mob_id: mobNo.toString(),
-    kill_time: killTimeDate,
-    reporter_uid: userId,
-    memo: memo,
-    repop_seconds: mob.REPOP_s
+// ✅ 認証初期化
+async function initializeAuth() {
+  return new Promise((resolve) => {
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        resolve(user.uid);
+      } else {
+        signInAnonymously(auth).catch(() => {}).then(() => {});
+      }
+    });
   });
 }
 
-// ✅ 湧き潰し切り替え
-export async function toggleCrushStatus(mobNo, locationId, isCurrentlyCulled) {
-  const docRef = doc(getFirestore(), "locations", `${mobNo}_${locationId}`);
-  await updateDoc(docRef, { is_culled: !isCurrentlyCulled });
+// ✅ サーバー時刻取得
+async function getServerTimeUTC() {
+  const getServerTime = httpsCallable(functions, "getServerTime");
+  const response = await getServerTime();
+  return new Date(response.data.utc_now);
 }
 
-// ✅ 巻き戻し処理
-export async function revertMobStatus(mobNo) {
-  const docRef = doc(getFirestore(), "reports", mobNo.toString());
-  await updateDoc(docRef, { kill_time: null, memo: "", repop_seconds: null });
-}
+// ✅ 討伐報告（kill_time をサーバー時刻で補正）
+const submitReport = async (mobNo, timeISO, memo) => {
+  const state = getState();
+  const userId = state.userId;
+  const mobs = state.mobs;
+
+  if (!userId) {
+    displayStatus("認証が完了していません。ページをリロードしてください。", "error");
+    return;
+  }
+
+  const mob = mobs.find(m => m.No === mobNo);
+  if (!mob) {
+    displayStatus("モブデータが見つかりません。", "error");
+    return;
+  }
+
+  const modalStatusEl = document.querySelector("#modal-status");
+  if (modalStatusEl) {
+    modalStatusEl.textContent = "送信中...";
+  }
+  displayStatus(`${mob.Name} 討伐時間報告中...`);
+
+  try {
+    const killTimeDate = await getServerTimeUTC(); // ✅ サーバー時刻で補正
+
+    await addDoc(collection(db, "reports"), {
+      mob_id: mobNo.toString(),
+      kill_time: killTimeDate,
+      reporter_uid: userId,
+      memo: memo,
+      repop_seconds: mob.REPOP_s
+    });
+
+    closeReportModal();
+    displayStatus("報告が完了しました。データ反映を待っています。", "success");
+  } catch (error) {
+    console.error("レポート送信エラー:", error);
+    if (modalStatusEl) {
+      modalStatusEl.textContent = "送信エラー: " + (error.message || "通信失敗");
+    }
+    displayStatus(`LKT報告エラー: ${error.message || "通信失敗"}`, "error");
+  }
+};
+
+// ✅ 湧き潰し報告
+const callUpdateCrushStatus = httpsCallable(functions, 'crushStatusUpdater');
+
+const toggleCrushStatus = async (mobNo, locationId, isCurrentlyCulled) => {
+  const state = getState();
+  const userId = state.userId;
+  const mobs = state.mobs;
+
+  if (!userId) {
+    displayStatus("認証が完了していません。", "error");
+    return;
+  }
+
+  const action = isCurrentlyCulled ? "uncrush" : "crush";
+  const mob = mobs.find(m => m.No === mobNo);
+  if (!mob) return;
+
+  displayStatus(
+    `${mob.Name} (${locationId}) ${action === "crush" ? "湧き潰し" : "解除"}報告中...`
+  );
+
+  try {
+    const result = await callUpdateCrushStatus({
+      mob_id: mobNo.toString(),
+      point_id: locationId,
+      type: action === "crush" ? "add" : "remove",
+      userId: userId
+    });
+
+    if (result.data?.success) {
+      displayStatus(`${mob.Name} の状態を更新しました。`, "success");
+    } else {
+      displayStatus(
+        `更新失敗: ${result.data?.message || "不明なエラー"}`,
+        "error"
+      );
+    }
+  } catch (error) {
+    displayStatus(`湧き潰し報告エラー: ${error.message}`, "error");
+  }
+};
+
+// ✅ 巻き戻し
+const callRevertStatus = httpsCallable(functions, 'revertStatus');
+
+const revertMobStatus = async (mobNo) => {
+  const state = getState();
+  const userId = state.userId;
+  const mobs = state.mobs;
+
+  if (!userId) {
+    displayStatus("認証が完了していません。ページをリロードしてください。", "error");
+    return;
+  }
+
+  const mob = mobs.find(m => m.No === mobNo);
+  if (!mob) return;
+
+  displayStatus(`${mob.Name} の状態を巻き戻し中...`, "warning");
+
+  try {
+    const result = await callRevertStatus({
+      mob_id: mobNo.toString(),
+    });
+
+    if (result.data?.success) {
+      displayStatus(`${mob.Name} の状態を直前のログへ巻き戻しました。`, "success");
+    } else {
+      displayStatus(
+        `巻き戻し失敗: ${result.data?.message || "ログデータが見つからないか、巻き戻しに失敗しました。"}`,
+        "error"
+      );
+    }
+  } catch (error) {
+    console.error("巻き戻しエラー:", error);
+    displayStatus(`巻き戻しエラー: ${error.message}`, "error");
+  }
+};
 
 // ✅ 購読系
-export function subscribeMobStatusDocs(onUpdate) {
-  const colRef = collection(getFirestore(), "reports");
-  return onSnapshot(colRef, onUpdate);
+function subscribeMobStatusDocs(onUpdate) {
+  const docIds = ["s_latest", "a_latest", "f_latest"];
+  const mobStatusDataMap = {};
+  const unsubs = docIds.map(id =>
+    onSnapshot(doc(db, "mob_status", id), snap => {
+      const data = snap.data();
+      if (data) mobStatusDataMap[id] = data;
+      onUpdate(mobStatusDataMap);
+    })
+  );
+  return () => unsubs.forEach(u => u());
 }
 
-export function subscribeMobLocations(onUpdate) {
-  const colRef = collection(getFirestore(), "locations");
-  return onSnapshot(colRef, onUpdate);
+function subscribeMobLocations(onUpdate) {
+  const unsub = onSnapshot(collection(db, "mob_locations"), snapshot => {
+    const map = {};
+    snapshot.forEach(docSnap => {
+      const mobNo = parseInt(docSnap.id, 10);
+      const data = docSnap.data();
+      map[mobNo] = { points: data.points || {} };
+    });
+    onUpdate(map);
+  });
+  return unsub;
 }
+
+// ✅ export
+export { db, auth, functions, initializeAuth, getServerTimeUTC, submitReport, toggleCrushStatus, revertMobStatus, subscribeMobStatusDocs, subscribeMobLocations };
