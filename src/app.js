@@ -1,16 +1,23 @@
 // app.js
-import { initializeFirebase, initializeAuth } from "./server.js"
 import { setupApp } from "./dataManager.js";
-import { attachEventListeners } from "./uiEvents.js";
-import { DOM } from "./uiShared.js";
+import { attachModalEvents } from "./modal.js";
+import { attachLocationEvents } from "./location.js";
+import { attachFilterEvents } from "./uiRender.js";
+import { DOM } from "./uiRender.js";
+
+function attachEventListeners() {
+  attachModalEvents();
+  attachLocationEvents(DOM);
+  attachFilterEvents(DOM);
+}
 
 document.addEventListener("DOMContentLoaded", () => {
   attachEventListeners();
 
-  // 初期タブのclickCount整備（localStorage復元に合わせる）
+  // 初期タブの clickCount 整備（localStorage 復元に合わせる）
   DOM.rankTabs.querySelectorAll(".tab-button").forEach(btn => {
-    // 復元rankと一致するものは1、それ以外は0
-    const currentRank = JSON.parse(localStorage.getItem("huntFilterState"))?.rank || "ALL";
+    const currentRank =
+      JSON.parse(localStorage.getItem("huntFilterState"))?.rank || "ALL";
     btn.dataset.clickCount = btn.dataset.rank === currentRank ? "1" : "0";
   });
 
