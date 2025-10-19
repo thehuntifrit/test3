@@ -1,8 +1,8 @@
 // dataManager.js
+
 import { setUserId, getState, setBaseMobData, setMobs } from "./store.js";
 import { filterAndRender, updateProgressBars } from "./uiRender.js";
-import { subscribeMobStatusDocs, subscribeMobLocations } from "./firestore.js";
-import { initializeAuth } from "./firebase.js";
+import { subscribeMobStatusDocs, subscribeMobLocations, initializeAuth} from "./server.js";
 import { displayStatus } from "./utils.js";
 
 const MOB_DATA_URL = "./mob_data.json";
@@ -39,12 +39,10 @@ async function loadBaseMobData() {
 }
 
 function startRealtime() {
-  // Clear previous
   if (progressInterval) clearInterval(progressInterval);
   unsubscribes.forEach(fn => fn && fn());
   unsubscribes = [];
 
-  // Subscribe mob_status docs
   const unsubStatus = subscribeMobStatusDocs(mobStatusDataMap => {
     const current = getState().mobs;
     const map = new Map();
@@ -68,7 +66,6 @@ function startRealtime() {
   });
   unsubscribes.push(unsubStatus);
 
-  // Subscribe mob_locations
   const unsubLoc = subscribeMobLocations(locationsMap => {
     const current = getState().mobs;
     const merged = current.map(m => {
