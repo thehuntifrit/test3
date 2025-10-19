@@ -2,6 +2,7 @@
 import { DOM } from "./uiShared.js";
 import { displayStatus } from "./utils.js";
 import { addDoc, collection } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+import { submitReport } from "./server.js"
 import { db } from "./firebase.js";
 import { getState } from "./store.js";
 import { toJstAdjustedIsoString } from "./utils.js";
