@@ -1,19 +1,16 @@
 // server.js
-
-// ✅ Firebase SDK（12.4.0 CDN版）
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
-import { getAuth, onAuthStateChanged, signInAnonymously} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-import { getFunctions, httpsCallable} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-functions.js";
+import { getFirestore, collection, onSnapshot, addDoc, doc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-functions.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-analytics.js";
 
-// ✅ 外部依存
+// 他モジュール依存
 import { getState } from "./store.js";
-import { DOMElements, closeReportModal } from "./modal.js";
+import { closeReportModal } from "./modal.js";
 import { displayStatus } from "./utils.js";
 
-// ✅ Firebase初期化
-const FIREBASE_CONFIG = {
+const FIREBASE_CONFIG = {  
   apiKey: "AIzaSyBikwjGsjL_PVFhx3Vj-OeJCocKA_hQOgU",
   authDomain: "the-hunt-ifrit.firebaseapp.com",
   projectId: "the-hunt-ifrit",
@@ -25,10 +22,9 @@ const FIREBASE_CONFIG = {
 const app = initializeApp(FIREBASE_CONFIG);
 const db = getFirestore(app);
 const auth = getAuth(app);
-const functions = getFunctions(app, "asia-northeast2");
+const functionsInstance = getFunctions(app, "asia-northeast1");
 const analytics = getAnalytics(app);
 
-// ✅ 認証初期化
 async function initializeAuth() {
   return new Promise((resolve) => {
     onAuthStateChanged(auth, (user) => {
@@ -41,14 +37,45 @@ async function initializeAuth() {
   });
 }
 
-// ✅ サーバー時刻取得
-async function getServerTimeUTC() {
-  const getServerTime = httpsCallable(functions, "getServerTime");
+// ✅ サーバーUTC取得
+export async function getServerTimeUTC() {
+  const getServerTime = httpsCallable(functionsInstance, "getServerTime");
   const response = await getServerTime();
-  return new Date(response.data.utc_now);
+  return new Date(response.data.utc_now); // UTC基準
 }
 
-// ✅ 討伐報告（kill_time をサーバー時刻で補正）
+// Cloud Functions 呼び出し
+const callUpdateCrushStatus = httpsCallable(functionsInstance, 'crushStatusUpdater');
+const callRevertStatus = httpsCallable(functionsInstance, 'revertStatus');
+
+// Firestore購読
+function subscribeMobStatusDocs(onUpdate) {
+  const docIds = ["s_latest", "a_latest", "f_latest"];
+  const mobStatusDataMap = {};
+  const unsubs = docIds.map(id =>
+    onSnapshot(doc(db, "mob_status", id), snap => {
+      const data = snap.data();
+      if (data) mobStatusDataMap[id] = data;
+      onUpdate(mobStatusDataMap);
+    })
+  );
+  return () => unsubs.forEach(u => u());
+}
+
+function subscribeMobLocations(onUpdate) {
+  const unsub = onSnapshot(collection(db, "mob_locations"), snapshot => {
+    const map = {};
+    snapshot.forEach(docSnap => {
+      const mobNo = parseInt(docSnap.id, 10);
+      const data = docSnap.data();
+      map[mobNo] = { points: data.points || {} };
+    });
+    onUpdate(map);
+  });
+  return unsub;
+}
+
+// 討伐報告
 const submitReport = async (mobNo, timeISO, memo) => {
   const state = getState();
   const userId = state.userId;
@@ -65,6 +92,9 @@ const submitReport = async (mobNo, timeISO, memo) => {
     return;
   }
 
+  // ✅ サーバーUTC基準に修正
+  const killTimeDate = await getServerTimeUTC();
+
   const modalStatusEl = document.querySelector("#modal-status");
   if (modalStatusEl) {
     modalStatusEl.textContent = "送信中...";
@@ -72,8 +102,6 @@ const submitReport = async (mobNo, timeISO, memo) => {
   displayStatus(`${mob.Name} 討伐時間報告中...`);
 
   try {
-    const killTimeDate = await getServerTimeUTC(); // ✅ サーバー時刻で補正
-
     await addDoc(collection(db, "reports"), {
       mob_id: mobNo.toString(),
       kill_time: killTimeDate,
@@ -93,9 +121,7 @@ const submitReport = async (mobNo, timeISO, memo) => {
   }
 };
 
-// ✅ 湧き潰し報告
-const callUpdateCrushStatus = httpsCallable(functions, 'crushStatusUpdater');
-
+// 湧き潰し報告
 const toggleCrushStatus = async (mobNo, locationId, isCurrentlyCulled) => {
   const state = getState();
   const userId = state.userId;
@@ -135,9 +161,7 @@ const toggleCrushStatus = async (mobNo, locationId, isCurrentlyCulled) => {
   }
 };
 
-// ✅ 巻き戻し
-const callRevertStatus = httpsCallable(functions, 'revertStatus');
-
+// 巻き戻し
 const revertMobStatus = async (mobNo) => {
   const state = getState();
   const userId = state.userId;
@@ -157,7 +181,7 @@ const revertMobStatus = async (mobNo) => {
     const result = await callRevertStatus({
       mob_id: mobNo.toString(),
     });
-
+    
     if (result.data?.success) {
       displayStatus(`${mob.Name} の状態を直前のログへ巻き戻しました。`, "success");
     } else {
@@ -172,32 +196,10 @@ const revertMobStatus = async (mobNo) => {
   }
 };
 
-// ✅ 購読系
-function subscribeMobStatusDocs(onUpdate) {
-  const docIds = ["s_latest", "a_latest", "f_latest"];
-  const mobStatusDataMap = {};
-  const unsubs = docIds.map(id =>
-    onSnapshot(doc(db, "mob_status", id), snap => {
-      const data = snap.data();
-      if (data) mobStatusDataMap[id] = data;
-      onUpdate(mobStatusDataMap);
-    })
-  );
-  return () => unsubs.forEach(u => u());
-}
-
-function subscribeMobLocations(onUpdate) {
-  const unsub = onSnapshot(collection(db, "mob_locations"), snapshot => {
-    const map = {};
-    snapshot.forEach(docSnap => {
-      const mobNo = parseInt(docSnap.id, 10);
-      const data = docSnap.data();
-      map[mobNo] = { points: data.points || {} };
-    });
-    onUpdate(map);
-  });
-  return unsub;
-}
-
-// ✅ export
-export { db, auth, functions, initializeAuth, getServerTimeUTC, submitReport, toggleCrushStatus, revertMobStatus, subscribeMobStatusDocs, subscribeMobLocations };
+export {
+  db, auth, initializeAuth,
+  functionsInstance as functions,
+  getServerTimeUTC,
+  subscribeMobStatusDocs, subscribeMobLocations,
+  submitReport, toggleCrushStatus, revertMobStatus
+};
