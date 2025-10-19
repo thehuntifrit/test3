@@ -1,25 +1,48 @@
 // app.js
-import { setupApp } from "./dataManager.js";
+import { initializeAuth, subscribeMobStatusDocs, subscribeMobLocations } from "./server.js";
+import { loadBaseMobData, setMobs, getState } from "./dataManager.js";
+import { filterAndRender, updateProgressBars } from "./uiRender.js";
 import { attachModalEvents } from "./modal.js";
 import { attachLocationEvents } from "./location.js";
-import { attachFilterEvents } from "./uiRender.js";
-import { DOM } from "./uiRender.js";
+import { attachFilterEvents } from "./filter.js";
+
+async function setupApp() {
+  // Firebase認証
+  const userId = await initializeAuth();
+  const state = getState();
+  state.userId = userId;
+
+  // モブデータ読み込み
+  const baseMobs = await loadBaseMobData();
+  setMobs(baseMobs);
+
+  // Firestore購読
+  subscribeMobStatusDocs((mobStatusDataMap) => {
+    const state = getState();
+    state.mobStatusDataMap = mobStatusDataMap;
+    filterAndRender();
+  });
+
+  subscribeMobLocations((mobLocationsMap) => {
+    const state = getState();
+    state.mobLocationsMap = mobLocationsMap;
+    filterAndRender();
+  });
+
+  // 初期描画
+  filterAndRender({ isInitialLoad: true });
+
+  // プログレスバー定期更新
+  setInterval(updateProgressBars, 60 * 1000);
+}
 
 function attachEventListeners() {
   attachModalEvents();
-  attachLocationEvents(DOM);
-  attachFilterEvents(DOM);
+  attachLocationEvents();
+  attachFilterEvents();
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  await setupApp();
   attachEventListeners();
-
-  // 初期タブの clickCount 整備（localStorage 復元に合わせる）
-  DOM.rankTabs.querySelectorAll(".tab-button").forEach(btn => {
-    const currentRank =
-      JSON.parse(localStorage.getItem("huntFilterState"))?.rank || "ALL";
-    btn.dataset.clickCount = btn.dataset.rank === currentRank ? "1" : "0";
-  });
-
-  setupApp();
 });
