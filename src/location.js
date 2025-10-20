@@ -5,15 +5,6 @@ import { DOM } from "./uiRender.js";
 import { toggleCrushStatus } from "./server.js";
 import { getState, getMobByNo } from "./dataManager.js";
 
-// ----------------------------------------------------
-// 🔴 uiEvents.js からの統合 (湧き潰しロジック)
-// ----------------------------------------------------
-
-/**
- * モブカード内の湧き潰しボタンクリックを処理する（DOM.colContainerのデリゲーション内で処理）
- * @param {Event} e
- * @returns {boolean} 湧き潰しトグルイベントが処理されたかどうか
- */
 function handleCrushToggle(e) {
     const point = e.target.closest(".spawn-point");
     if (point && point.dataset.isInteractive === "true") {
