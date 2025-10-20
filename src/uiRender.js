@@ -47,6 +47,11 @@ function displayStatus(message, type = "info") {
   setTimeout(() => { el.textContent = ""; }, 5000);
 }
 
+// processText
+function processText(text) {
+  if (typeof text !== "string" || !text) return "";
+  return text.replace(/\/\//g, "<br>");
+}
 
 // createMobCard
 function createMobCard(mob) {
