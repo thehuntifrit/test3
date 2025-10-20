@@ -16,6 +16,13 @@ function debounce(func, wait) {
   };
 }
 
+function toJstAdjustedIsoString(date) {
+  const offsetMs = date.getTimezoneOffset() * 60000;
+  const jstOffsetMs = 9 * 60 * 60 * 1000;
+  const jstTime = date.getTime() - offsetMs + jstOffsetMs;
+  return new Date(jstTime).toISOString().slice(0, 16);
+}
+
 // エオルゼア時間 (Eorzea Time)
 function getEorzeaTime(date = new Date()) {
   const unixSeconds = Math.floor(date.getTime() / 1000);
@@ -163,4 +170,4 @@ function calculateRepop(mob) {
   return { minRepop, maxRepop, elapsedPercent, timeRemaining, status, nextMinRepopDate };
 }
 
-export { calculateRepop, checkMobSpawnCondition, findNextSpawnTime, getEorzeaTime, getEorzeaMoonPhase, getEorzeaWeatherSeed, getEorzeaWeather, formatDuration, debounce };
+export { calculateRepop, checkMobSpawnCondition, findNextSpawnTime, getEorzeaTime, getEorzeaMoonPhase, getEorzeaWeatherSeed, getEorzeaWeather, formatDuration, debounce, toJstAdjustedIsoString };
