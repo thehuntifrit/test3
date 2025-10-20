@@ -1,14 +1,11 @@
-// app.js (統合後)
+// app.js
 
-import { setupApp } from "./dataManager.js";
-import { DOM } from "./uiRender.js"; // DOM は uiRender.js に移動済み
-
-import { getState, setFilter, setOpenMobCardNo, FILTER_TO_DATA_RANK_MAP } from "./dataManager.js"; 
+import { setupApp, getState, setFilter, setOpenMobCardNo, FILTER_TO_DATA_RANK_MAP } from "./dataManager.js"; 
 import { openReportModal, closeReportModal, toJstAdjustedIsoString, attachModalEvents } from "./modal.js"; 
 import { attachLocationEvents } from "./location.js"; 
 import { submitReport, toggleCrushStatus } from "./server.js"; 
 import { debounce } from "./cal.js"; 
-import { filterAndRender, renderRankTabs, renderAreaFilterPanel, sortAndRedistribute, toggleAreaFilterPanel } from "./uiRender.js";
+import { DOM, filterAndRender, renderRankTabs, renderAreaFilterPanel, sortAndRedistribute, toggleAreaFilterPanel } from "./uiRender.js";
 
 function attachFilterEvents() {
   // Rank tabs
