@@ -49,28 +49,29 @@ overlay.addEventListener("click", e => {
 });
 
 function drawSpawnPoint(mob) {
-    const state = getState();
-    const card = DOM.colContainer.querySelector(`.mob-card[data-mob-no="${mob.No}"]`);
-    const overlay = card?.querySelector(".spawn-points-overlay");
-    if (!overlay) return;
+  const state = getState();
+  const card = DOM.colContainer.querySelector(`.mob-card[data-mob-no="${mob.No}"]`);
+  const overlay = card?.querySelector(".spawn-points-overlay");
+  if (!overlay) return;
 
-    overlay.innerHTML = ''; // クリア
+  overlay.innerHTML = ''; // クリア
 
-    if (mob.spawn_locations) {
-        Object.entries(mob.spawn_locations).forEach(([id, point]) => {
-            const isCulled = point.culled_by.length > 0;
-            const marker = document.createElement('div');
-            marker.className = `spawn-point absolute w-3 h-3 rounded-full cursor-pointer transition-all ${isCulled ? 'bg-red-500' : 'bg-green-500'}`;
-            marker.style.left = `${point.x}%`;
-            marker.style.top = `${point.y}%`;
-            marker.title = `湧き潰し: ${isCulled ? '済' : '未'}`;
-            marker.dataset.locationId = id;
-            marker.dataset.isCulled = isCulled ? 'true' : 'false';
-            marker.dataset.isInteractive = 'true'; // クリック可能
+  if (mob.spawn_locations) {
+    Object.entries(mob.spawn_locations).forEach(([id, point]) => {
+      const isCulled = point.culled_by.length > 0;
+      const marker = document.createElement('div');
+      marker.className = `spawn-point absolute w-3 h-3 rounded-full cursor-pointer transition-all ${isCulled ? 'bg-red-500' : 'bg-green-500'}`;
+      marker.style.left = `${point.x}%`;
+      marker.style.top = `${point.y}%`;
+      marker.title = `湧き潰し: ${isCulled ? '済' : '未'}`;
+      marker.dataset.mobNo = mob.No;
+      marker.dataset.locationId = id;
+      marker.dataset.isCulled = isCulled ? 'true' : 'false';
+      marker.dataset.isInteractive = 'true';
 
-            overlay.appendChild(marker);
-        });
-    }
+      overlay.appendChild(marker);
+    });
+  }
 }
 
 export { drawSpawnPoint, handleCrushToggle, updateCrushUI };
