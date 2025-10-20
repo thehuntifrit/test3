@@ -74,4 +74,32 @@ function drawSpawnPoint(mob) {
   }
 }
 
+export function attachLocationEvents() {
+  const overlayContainers = document.querySelectorAll(".spawn-points-overlay");
+  if (!overlayContainers.length) return;
+
+  overlayContainers.forEach(overlay => {
+    // hover は CSS に任せるので click のみ処理
+    overlay.addEventListener("click", e => {
+      const point = e.target.closest(".spawn-point");
+      if (!point) return;
+
+      // インタラクティブでなければ無視
+      if (point.dataset.isInteractive !== "true") return;
+
+      const mobNo = point.dataset.mobNo;
+      const locationId = point.dataset.locationId;
+      const isCurrentlyCulled = point.dataset.isCulled === "true";
+
+      // Firebase 送信
+      toggleCrushStatus(mobNo, locationId, isCurrentlyCulled);
+
+      // UI 更新（潰し済みクラスの付け替え）
+      point.dataset.isCulled = (!isCurrentlyCulled).toString();
+      point.classList.toggle("spawn-point-culled", !isCurrentlyCulled);
+      point.title = `湧き潰し: ${!isCurrentlyCulled ? "済" : "未"}`;
+    });
+  });
+}
+
 export { drawSpawnPoint, handleCrushToggle, updateCrushUI };
