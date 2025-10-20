@@ -275,14 +275,17 @@ function updateProgressBars() {
             ? `残り ${formatDuration(maxRepop - Date.now() / 1000)}`
             : "";
 
-        // --- プログレスバー更新 ---
-        bar.style.width = `${elapsedPercent}%`;
+        // --- プログレスバー更新 ---
+        bar.style.width = `${elapsedPercent}%`;
 
-        text.innerHTML = `
-          <span class="percent">${elapsedPercent.toFixed(0)}%</span>
-          <span class="next-time">次回 ${nextTimeStr}</span>
-          <span class="remaining">${remainingStr}</span>
-        `;
+        // 3カラム配置に変更
+        text.innerHTML = `
+          <div class="w-full grid grid-cols-3 items-center text-sm font-semibold" style="line-height:1;">
+            <div class="text-left">${remainingStr}</div> <!-- 左：残り -->
+            <div class="text-center">次回 ${nextTimeStr}</div><!-- 中央：次回 -->
+            <div class="text-right">${elapsedPercent.toFixed(0)}%</div> <!-- 右：％ -->
+          </div>
+        `;
 
         // --- 色・クラス制御 ---
         bar.classList.remove(PROGRESS_CLASSES.P0_60, PROGRESS_CLASSES.P60_80, PROGRESS_CLASSES.P80_100);
