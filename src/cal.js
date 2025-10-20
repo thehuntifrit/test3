@@ -170,4 +170,19 @@ function calculateRepop(mob) {
   return { minRepop, maxRepop, elapsedPercent, timeRemaining, status, nextMinRepopDate };
 }
 
+function formatLastKillTime(timestamp) {
+  if (timestamp === 0) return "未報告";
+  const killTimeMs = timestamp * 1000;
+  const nowMs = Date.now();
+  const diffSeconds = Math.floor((nowMs - killTimeMs) / 1000);
+  if (diffSeconds < 3600) {
+    if (diffSeconds < 60) return `Just now`;
+    const minutes = Math.floor(diffSeconds / 60);
+    return `${minutes}m ago`;
+  }
+  const options = { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Tokyo" };
+  const date = new Date(killTimeMs);
+  return new Intl.DateTimeFormat("ja-JP", options).format(date);
+}
+
 export { calculateRepop, checkMobSpawnCondition, findNextSpawnTime, getEorzeaTime, getEorzeaMoonPhase, getEorzeaWeatherSeed, getEorzeaWeather, formatDuration, debounce, toJstAdjustedIsoString };
