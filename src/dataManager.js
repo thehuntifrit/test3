@@ -4,10 +4,6 @@
 import { filterAndRender, updateProgressBars, displayStatus } from "./uiRender.js";
 import { subscribeMobStatusDocs, subscribeMobLocations, initializeAuth } from "./server.js";
 
-// ----------------------------------------------------
-// 🔴 store.js からの統合 (文言変更なし)
-// ----------------------------------------------------
-
 const EXPANSION_MAP = { 1: "新生", 2: "蒼天", 3: "紅蓮", 4: "漆黒", 5: "暁月", 6: "黄金" };
 
 const state = {
@@ -28,7 +24,7 @@ const state = {
     : null
 };
 
-// Set復元
+// Set復元ロジック
 for (const k in state.filter.areaSets) {
   const v = state.filter.areaSets[k];
   if (Array.isArray(v)) state.filter.areaSets[k] = new Set(v);
@@ -69,10 +65,7 @@ function setOpenMobCardNo(no) {
   localStorage.setItem("openMobCardNo", no ?? "");
 }
 
-// ----------------------------------------------------
-// 🔴 uiShared.js からの統合 (静的定義) (文言変更なし)
-// ----------------------------------------------------
-
+// 静的定義の追記
 const RANK_COLORS = {
   S: {bg: 'bg-red-600', hover: 'hover:bg-red-700', text: 'text-red-600', hex: '#dc2626', label: 'S'},
   A: {bg: 'bg-yellow-600', hover: 'hover:bg-yellow-700', text: 'text-yellow-600', hex: '#ca8a04', label: 'A'},
@@ -89,19 +82,6 @@ const PROGRESS_CLASSES = {
 };
 
 const FILTER_TO_DATA_RANK_MAP = { FATE: 'F', ALL: 'ALL', S: 'S', A: 'A'};
-
-// ----------------------------------------------------
-// 🔴 utils.js からの統合 (processText) (文言変更なし)
-// ----------------------------------------------------
-
-function processText(text) {
-  if (typeof text !== "string" || !text) return "";
-  return text.replace(/\/\//g, "<br>");
-}
-
-// ----------------------------------------------------
-// 🔴 dataManager.js 本体からの統合 (文言変更なし)
-// ----------------------------------------------------
 
 const MOB_DATA_URL = "./mob_data.json";
 let progressInterval = null;
@@ -193,6 +173,5 @@ async function setupApp() {
 }
 
 // 🚨 修正1: 全てのエクスポートを整理
-export { setupApp, EXPANSION_MAP, getState, getMobByNo, setUserId, setBaseMobData, setMobs, setFilter, 
-        etOpenMobCardNo, RANK_COLORS, PROGRESS_CLASSES, FILTER_TO_DATA_RANK_MAP, processText
-};
+export { setupApp, state, EXPANSION_MAP, getState, getMobByNo, setUserId, setBaseMobData, setMobs, setFilter, setOpenMobCardNo 
+        RANK_COLORS, PROGRESS_CLASSES, FILTER_TO_DATA_RANK_MAP, };
