@@ -38,7 +38,7 @@ async function initializeAuth() {
             if (user) {
                 resolve(user.uid);
             } else {
-                signInAnonymously(auth).catch(() => {}).then(() => {});
+                signInAnonymously(auth).catch(() => { }).then(() => { });
             }
         });
     });
@@ -46,9 +46,9 @@ async function initializeAuth() {
 
 // サーバーUTC取得
 export async function getServerTimeUTC() {
-  const getServerTime = httpsCallable(functionsInstance, "getServerTime");
-  const response = await getServerTime();
-  return new Date(response.data.utc_now); // UTC基準
+    const getServerTime = httpsCallable(functionsInstance, "getServerTime");
+    const response = await getServerTime();
+    return new Date(response.data.utc_now); // UTC基準
 }
 
 // データ購読
@@ -79,47 +79,47 @@ function subscribeMobLocations(onUpdate) {
 }
 // 討伐報告
 const submitReport = async (mobNo, timeISO, memo) => {
-  const state = getState();
-  const userId = state.userId;
-  const mobs = state.mobs;
+    const state = getState();
+    const userId = state.userId;
+    const mobs = state.mobs;
 
-  if (!userId) {
-    displayStatus("認証が完了していません。ページをリロードしてください。", "error");
-    return;
-  }
-
-  const mob = mobs.find(m => m.No === mobNo);
-  if (!mob) {
-    displayStatus("モブデータが見つかりません。", "error");
-    return;
-  }
-
-  const killTimeDate = await getServerTimeUTC();
-
-  const modalStatusEl = document.querySelector("#modal-status");
-  if (modalStatusEl) {
-    modalStatusEl.textContent = "送信中...";
-  }
-  displayStatus(`${mob.Name} 討伐時間報告中...`);
-
-  try {
-    await addDoc(collection(db, "reports"), {
-      mob_id: mobNo.toString(),
-      kill_time: killTimeDate,
-      reporter_uid: userId,
-      memo: memo,
-      repop_seconds: mob.REPOP_s
-    });
-
-    closeReportModal();
-    displayStatus("報告が完了しました。データ反映を待っています。", "success");
-  } catch (error) {
-    console.error("レポート送信エラー:", error);
-    if (modalStatusEl) {
-      modalStatusEl.textContent = "送信エラー: " + (error.message || "通信失敗");
+    if (!userId) {
+        displayStatus("認証が完了していません。ページをリロードしてください。", "error");
+        return;
     }
-    displayStatus(`LKT報告エラー: ${error.message || "通信失敗"}`, "error");
-  }
+
+    const mob = mobs.find(m => m.No === mobNo);
+    if (!mob) {
+        displayStatus("モブデータが見つかりません。", "error");
+        return;
+    }
+
+    const killTimeDate = await getServerTimeUTC();
+
+    const modalStatusEl = document.querySelector("#modal-status");
+    if (modalStatusEl) {
+        modalStatusEl.textContent = "送信中...";
+    }
+    displayStatus(`${mob.Name} 討伐時間報告中...`);
+
+    try {
+        await addDoc(collection(db, "reports"), {
+            mob_id: mobNo.toString(),
+            kill_time: killTimeDate,
+            reporter_uid: userId,
+            memo: memo,
+            repop_seconds: mob.REPOP_s
+        });
+
+        closeReportModal();
+        displayStatus("報告が完了しました。データ反映を待っています。", "success");
+    } catch (error) {
+        console.error("レポート送信エラー:", error);
+        if (modalStatusEl) {
+            modalStatusEl.textContent = "送信エラー: " + (error.message || "通信失敗");
+        }
+        displayStatus(`LKT報告エラー: ${error.message || "通信失敗"}`, "error");
+    }
 };
 
 // 湧き潰し報告 (toggleCrushStatus)
