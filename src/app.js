@@ -142,7 +142,6 @@ function attachEventListeners() {
   attachFilterEvents();
   attachCardEvents();
   attachWindowResizeEvents();
-  attachModalEvents();
   attachLocationEvents();
 }
 
