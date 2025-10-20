@@ -8,15 +8,15 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-analytics.js";
 
 // 🚨 修正1 (パス修正): ローカル依存関係のインポート
-import { getState } from "./dataManager.js"; 
-import { closeReportModal } from "./modal.js"; 
-import { displayStatus } from "./uiRender.js"; 
+import { getState } from "./dataManager.js";
+import { closeReportModal } from "./modal.js";
+import { displayStatus } from "./uiRender.js";
 
 // ----------------------------------------------------
 // 🔴 firebase.js からの統合 (文言変更なし)
 // ----------------------------------------------------
 
-const FIREBASE_CONFIG = {  
+const FIREBASE_CONFIG = {
   apiKey: "AIzaSyBikwjGsjL_PVFhx3Vj-OeJCocKA_hQOgU",
   authDomain: "the-hunt-ifrit.firebaseapp.com",
   projectId: "the-hunt-ifrit",
@@ -44,16 +44,12 @@ async function initializeAuth() {
   });
 }
 
-// 🚨 修正1: firestore.js側のgetFunctions(app)と競合するため、functionsInstanceを使用するように変更
-// export const functions = getFunctions(app); // <- firestore.js側のロジックにより削除
-// export { db, auth, initializeAuth }; // <- 末尾にまとめてエクスポート
-
 // ----------------------------------------------------
 // 🔴 firestore.js からの統合 (文言変更なし)
 // ----------------------------------------------------
 
 // 🚨 修正1: functionsInstance を使用
-const functions = functionsInstance; 
+const functions = functionsInstance;
 const callUpdateCrushStatus = httpsCallable(functions, 'crushStatusUpdater');
 const callRevertStatus = httpsCallable(functions, 'revertStatus');
 const callGetServerTime = httpsCallable(functions, 'getServerTime'); // 🚨 修正2: サーバー時間統合のために追加
@@ -63,13 +59,13 @@ const callGetServerTime = httpsCallable(functions, 'getServerTime'); // 🚨 修
 // ----------------------------------------------------
 
 export async function getServerTimeUTC() {
-    try {
-        const result = await callGetServerTime();
-        return result.data.serverTimeMs;
-    } catch (error) {
-        console.error("Error fetching server time from Cloud Functions:", error);
-        return Date.now(); 
-    }
+    try {
+        const result = await callGetServerTime();
+        return result.data.serverTimeMs;
+    } catch (error) {
+        console.error("Error fetching server time from Cloud Functions:", error);
+        return Date.now();
+    }
 }
 
 function subscribeMobStatusDocs(onUpdate) {
@@ -116,11 +112,12 @@ const submitReport = async (mobNo, timeISO, memo) => {
   }
 
   const killTimeDate = new Date(timeISO);
-  if (isNaN(killTimeDate)) {
+  if (isNaN(killTimeDate.getTime())) { // Dateオブジェクトの有効性を確認
     displayStatus("時刻形式が不正です。", "error");
     return;
   }
 
+  // モダール内のステータスを更新
   const modalStatusEl = document.querySelector("#modal-status");
   if (modalStatusEl) {
     modalStatusEl.textContent = "送信中...";
@@ -128,12 +125,12 @@ const submitReport = async (mobNo, timeISO, memo) => {
   displayStatus(`${mob.Name} 討伐時間報告中...`);
 
   try {
-    // ----------------------------------------------------
-    // 🚨 修正2 (サーバー時間統合): サーバー時間を使用する
-    // ----------------------------------------------------
-    const serverTimeMs = await getServerTimeUTC(); 
-    const finalKillTimeDate = new Date(serverTimeMs); 
-    
+    // ----------------------------------------------------
+    // 🚨 修正2 (サーバー時間統合): サーバー時間を使用する
+    // ----------------------------------------------------
+    const serverTimeMs = await getServerTimeUTC();
+    const finalKillTimeDate = new Date(serverTimeMs);
+
     await addDoc(collection(db, "reports"), {
       mob_id: mobNo.toString(),
       kill_time: finalKillTimeDate, // 🚨 修正2: サーバー時間に変更
@@ -213,7 +210,7 @@ const revertMobStatus = async (mobNo) => {
         const result = await callRevertStatus({
             mob_id: mobNo.toString(),
         });
-        
+        
         if (result.data?.success) {
             displayStatus(`${mob.Name} の状態を直前のログへ巻き戻しました。`, "success");
         } else {
