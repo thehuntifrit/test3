@@ -1,7 +1,6 @@
 // modal.js
 
-import { DOM } from "./uiRender.js"; 
-import { displayStatus } from "./uiRender.js"; 
+import { DOM, displayStatus } from "./uiRender.js"; 
 import { getState } from "./dataManager.js";
 import { toJstAdjustedIsoString } from "./cal.js";
 
@@ -33,4 +32,4 @@ function closeReportModal() {
   DOM.modalMemoInput.value = "";
 }
 
-export { openReportModal, closeReportModal, toJstAdjustedIsoString, toLocalIsoString };
+export { openReportModal, closeReportModal, toLocalIsoString };
