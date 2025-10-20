@@ -1,6 +1,6 @@
 // location.js
 
-// 🚨 修正1 (パス修正): 依存関係を修正・整理
+// 🚨 修正1: 依存関係を修正・整理
 import { DOM } from "./uiRender.js";
 import { toggleCrushStatus } from "./server.js";
 import { getState, getMobByNo } from "./dataManager.js";
@@ -24,9 +24,7 @@ function handleCrushToggle(e) {
       const mobNo = parseInt(card.dataset.mobNo, 10);
       const locationId = point.dataset.locationId;
       const isCurrentlyCulled = point.dataset.isCulled === "true";
-      // uiEvents.js のロジックから移植
-      // location.js の責務である toggleCrushStatus の呼び出しを維持
-      toggleCrushStatus(mobNo, locationId, isCurrentlyCulled); 
+      toggleCrushStatus(mobNo, locationId, isCurrentlyCulled);
       return true;
     }
     return false;
@@ -37,8 +35,7 @@ function handleCrushToggle(e) {
  * (drawSpawnPoint内で実行されるため、ここではロジック本体は不要と仮定)
  */
 function updateCrushUI() {
-    // drawSpawnPoint 関数内で湧き潰しUIの描画と更新が行われると想定。
-    // この関数自体は、UIの再描画が必要な際に外部から呼び出されるためのインターフェースとして残す。
+    // UIの再描画が必要な際に外部から呼び出されるためのインターフェースとして残す
 }
 
 /**
