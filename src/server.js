@@ -10,10 +10,7 @@ import { getState } from "./store.js";
 import { closeReportModal } from "./modal.js";
 import { displayStatus } from "./uiRender.js";
 
-// ----------------------------------------------------
 // 初期化と設定
-// ----------------------------------------------------
-
 const FIREBASE_CONFIG = {
     apiKey: "AIzaSyBikwjGsjL_PVFhx3Vj-OeJCocKA_hQOgU",
     authDomain: "the-hunt-ifrit.firebaseapp.com",
@@ -80,8 +77,23 @@ function subscribeMobLocations(onUpdate) {
     });
     return unsub;
 }
+// 討伐報告
+const submitReport = async (mobNo, timeISO, memo) => {
+  const state = getState();
+  const userId = state.userId;
+  const mobs = state.mobs;
 
-  // サーバーUTC基準に修正
+  if (!userId) {
+    displayStatus("認証が完了していません。ページをリロードしてください。", "error");
+    return;
+  }
+
+  const mob = mobs.find(m => m.No === mobNo);
+  if (!mob) {
+    displayStatus("モブデータが見つかりません。", "error");
+    return;
+  }
+
   const killTimeDate = await getServerTimeUTC();
 
   const modalStatusEl = document.querySelector("#modal-status");
