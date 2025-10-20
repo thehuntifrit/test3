@@ -1,6 +1,5 @@
 // location.js
 
-// 🚨 修正1: 依存関係を修正・整理
 import { DOM } from "./uiRender.js";
 import { toggleCrushStatus } from "./server.js";
 import { getState, getMobByNo } from "./dataManager.js";
@@ -21,10 +20,6 @@ function handleCrushToggle(e) {
     return false;
 }
 
-/**
- * 湧き潰し状態に応じてUIを更新する
- * (drawSpawnPoint内で実行されるため、ここではロジック本体は不要と仮定)
- */
 function updateCrushUI() {
     // UIの再描画が必要な際に外部から呼び出されるためのインターフェースとして残す
 }
@@ -45,7 +40,7 @@ function drawSpawnPoint(mob) {
   const overlay = card?.querySelector(".spawn-points-overlay");
   if (!overlay) return;
 
-  overlay.innerHTML = ''; // クリア
+  overlay.innerHTML = '';
 
   if (mob.spawn_locations) {
     Object.entries(mob.spawn_locations).forEach(([id, point]) => {
@@ -70,22 +65,18 @@ export function attachLocationEvents() {
   if (!overlayContainers.length) return;
 
   overlayContainers.forEach(overlay => {
-    // hover は CSS に任せるので click のみ処理
     overlay.addEventListener("click", e => {
       const point = e.target.closest(".spawn-point");
       if (!point) return;
 
-      // インタラクティブでなければ無視
       if (point.dataset.isInteractive !== "true") return;
 
       const mobNo = point.dataset.mobNo;
       const locationId = point.dataset.locationId;
       const isCurrentlyCulled = point.dataset.isCulled === "true";
 
-      // Firebase 送信
       toggleCrushStatus(mobNo, locationId, isCurrentlyCulled);
 
-      // UI 更新（潰し済みクラスの付け替え）
       point.dataset.isCulled = (!isCurrentlyCulled).toString();
       point.classList.toggle("spawn-point-culled", !isCurrentlyCulled);
       point.title = `湧き潰し: ${!isCurrentlyCulled ? "済" : "未"}`;
