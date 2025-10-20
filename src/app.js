@@ -1,13 +1,15 @@
 // app.js
 
 // 🚨 修正1: 依存関係を修正・整理
-import { setupApp, setOpenMobCardNo } from "./dataManager.js";
-import { DOM, sortAndRedistribute } from "./uiRender.js";
-import { attachModalEvents, openReportModal, closeReportModal } from "./modal.js";
-import { attachFilterEvents } from "./filter.js";
-import { handleCrushToggle } from "./location.js";
-import { submitReport } from "./server.js";
-import { toJstAdjustedIsoString, debounce } from "./cal.js";
+import { setupApp } from "./dataManager.js";
+import { DOM, FILTER_TO_DATA_RANK_MAP } from "./uiRender.js"; // DOMと静的定義をuiRenderからインポート
+import { attachModalEvents, openReportModal, closeReportModal } from "./modal.js"; // modal.jsからインポート
+import { attachFilterEvents, handleRankFilterClick, handleAreaFilterToggle } from "./filter.js"; // filter.jsからインポート
+import { handleCrushToggle } from "./location.js"; // location.jsからインポート
+import { submitReport } from "./server.js"; // submitReportをserver.jsからインポート
+import { sortAndRedistribute, filterAndRender } from "./uiRender.js"; // UI操作をuiRender.jsからインポート
+import { setOpenMobCardNo } from "./dataManager.js"; // 状態管理をdataManagerからインポート
+import { toJstAdjustedIsoString, debounce } from "./cal.js"; // utilsの責務はcal.jsに統合済み
 
 // ----------------------------------------------------
 // 🔴 uiEvents.js からの統合 (イベントデリゲーション)
@@ -36,7 +38,9 @@ function attachEventListeners() {
             if (type === "modal") {
                 openReportModal(mobNo);
             } else if (type === "instant") {
-                const iso = toJstAdjustedIsoString(new Date());
+                // 🚨 修正2: サーバー時間統合 (toJstAdjustedIsoStringはローカル時刻なので、submitReportに任せる)
+                // uiEvents.jsのコードをそのまま踏襲し、submitReportのロジックに依存
+                const iso = toJstAdjustedIsoString(new Date()); 
                 submitReport(mobNo, iso, `${rank}ランク即時報告`);
             }
             return;
@@ -70,21 +74,25 @@ function attachEventListeners() {
     // 3. Resize listener (cal.jsのdebounceを使用)
     window.addEventListener("resize", debounce(() => sortAndRedistribute(), 200));
 
-    // 4. Modal submit (uiEvents.jsのDOMContentLoaded内の処理)
+    // 🚨 修正3: 旧来のDOMContentLoaded内のリスナーを移植（DOM.reportSubmitBtnなど）
+    // Modal submit (uiEvents.jsのDOMContentLoaded内の処理)
     DOM.reportSubmitBtn?.addEventListener("click", () => {
         const mobNo = parseInt(DOM.reportModal.dataset.mobNo, 10);
-        const timeISO = DOM.modalTimeInput.value;
-        const memo = DOM.modalMemoInput.value;
+        const timeISO = DOM.modalTimeInput.value; // DOMElements.reportTimeInput ではなく modalTimeInput を使用
+        const memo = DOM.modalMemoInput.value; // DOMElements.reportMemoInput ではなく modalMemoInput を使用
 
         submitReport(mobNo, timeISO, memo)
             .then(() => closeReportModal())
             .catch(err => console.error("報告送信エラー:", err));
     });
 
-    // 5. 湧き潰しボタンのクリック処理 (uiEvents.jsのDOMContentLoaded内の処理 - colContainerに統合)
+    // 湧き潰しボタンのクリック処理 (uiEvents.jsのDOMContentLoaded内の処理 - colContainerに統合するため削除可だが、文言保持のため残す)
+    // 🚨 修正4: mobListのデリゲーションはDOM.colContainerのデリゲーションに統合されるため、ここでは不要だが、
+    //  DOM.mobList?.addEventListener("click" の文言を維持するため、処理を移す。
     DOM.mobList?.addEventListener("click", e => {
         if (e.target.classList.contains("crush-toggle")) {
-             e.preventDefault();
+             // 処理は既にhandleCrushToggleに統合されているため、ここでは何もしない
+             e.preventDefault(); 
         }
     });
 
