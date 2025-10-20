@@ -1,16 +1,26 @@
 // uiRender.js
 
-// 🚨 修正1 (パス修正): 外部依存関係のインポート
-import { getState, EXPANSION_MAP, RANK_COLORS, PROGRESS_CLASSES, FILTER_TO_DATA_RANK_MAP } from "./dataManager.js";
-import { calculateRepop, findNextSpawnTime, formatLastKillTime, formatDuration } from "./cal.js";
+// 依存関係の修正:
+// 元の import { state, getState } from "./store.js"; => getState は dataManager.js へ
+// 元の import { calculateRepop, findNextSpawnTime } from "./cal.js"; => cal.js は仕様通り
+// 元の import { drawSpawnPoint, processText, formatDuration, formatLastKillTime } from "./utils.js";
+//    => drawSpawnPoint は location.js へ移動の仕様
+//    => processText は dataManager.js へ移動の仕様
+//    => formatDuration は cal.js へ移動の仕様
+//    => formatLastKillTime は移動先未定。一旦 "./cal.js" または元のパスに保留（注意点3に基づき、一旦元のimportを維持する）
+// 元の import { RANK_COLORS, PROGRESS_CLASSES, FILTER_TO_DATA_RANK_MAP, DOM } from "./uiShared.js";
+//    => RANK_COLORS, PROGRESS_CLASSES, FILTER_TO_DATA_RANK_MAP は dataManager.js へ移動の仕様
+//    => DOM は uiRender.js 内に定義が必要
+
+import { getState } from "./dataManager.js";
+import { calculateRepop, findNextSpawnTime, formatDuration } from "./cal.js";
 import { drawSpawnPoint } from "./location.js";
-import { processText } from "./dataManager.js";
-import { updateFilterUI } from "./filter.js"; // 🚨 filter.jsの関数は未提示のため仮インポート
+import { processText, formatLastKillTime } from "./utils.js"; // processText は dataManager.js に移動の仕様だが、一旦元のimportを維持し、後でコードが揃った際に修正します。
+import { RANK_COLORS, PROGRESS_CLASSES, FILTER_TO_DATA_RANK_MAP } from "./dataManager.js";
+import { updateFilterUI } from "./filter.js";
 
-// ----------------------------------------------------
-// 🔴 uiShared.js からの統合 (DOM定義)
-// ----------------------------------------------------
 
+// DOM 定義 (仕様に基づき、uiRender.jsの責務として組み込む)
 const DOM = {
   masterContainer: document.getElementById('master-mob-container'),
   colContainer: document.getElementById('column-container'),
@@ -27,22 +37,18 @@ const DOM = {
   modalMemoInput: document.getElementById('report-memo')
 };
 
-// ----------------------------------------------------
-// 🔴 utils.js からの統合 (displayStatus)
-// ----------------------------------------------------
 
+// displayStatus (仕様に基づき、uiRender.jsの責務として組み込む)
 function displayStatus(message, type = "info") {
-  const el = DOM.statusMessage; 
+  const el = document.getElementById("status-message");
   if (!el) return;
   el.textContent = message;
   el.className = `status ${type}`;
   setTimeout(() => { el.textContent = ""; }, 5000);
 }
 
-// ----------------------------------------------------
-// 🔴 uiRender.js 本体からの統合 (文言変更なし)
-// ----------------------------------------------------
 
+// createMobCard
 function createMobCard(mob) {
     const rank = mob.Rank;
     const rankConfig = RANK_COLORS[rank] || RANK_COLORS.A;
@@ -148,6 +154,7 @@ function createMobCard(mob) {
 `;
 }
 
+// filterAndRender
 function filterAndRender({ isInitialLoad = false } = {}) {
     const state = getState();
     const uiRank = state.filter.rank;
@@ -216,6 +223,7 @@ function filterAndRender({ isInitialLoad = false } = {}) {
     }
 }
 
+// distributeCards
 function distributeCards() {
     const width = window.innerWidth;
     const md = 768;
@@ -240,6 +248,7 @@ function distributeCards() {
     });
 }
 
+// updateProgressBars
 function updateProgressBars() {
     const state = getState();
     state.mobs = state.mobs.map(m => ({ ...m, repopInfo: calculateRepop(m) }));
@@ -302,5 +311,4 @@ function updateProgressBars() {
     });
 }
 
-// 🚨 修正1: 全てのエクスポートを整理
-export { DOM, displayStatus, filterAndRender, distributeCards, updateProgressBars, createMobCard };
+export { filterAndRender, distributeCards, updateProgressBars, createMobCard, displayStatus, DOM };
