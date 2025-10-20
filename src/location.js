@@ -38,19 +38,16 @@ function updateCrushUI() {
     // UIの再描画が必要な際に外部から呼び出されるためのインターフェースとして残す
 }
 
-/**
- * 湧き潰しボタン、マップ関連のイベントリスナーをアタッチする
- * (DOM.colContainerのデリゲーションに統合されるため、ここではダミー関数として残す)
- */
-function attachLocationEvents() {
-    // イベントデリゲーションは app.js の attachEventListeners に統合される
-}
+overlay.addEventListener("click", e => {
+  const point = e.target.closest(".spawn-point");
+  if (point && point.dataset.isInteractive === "true") {
+    const mobNo = point.dataset.mobNo;
+    const locationId = point.dataset.locationId;
+    const isCurrentlyCulled = point.dataset.isCulled === "true";
+    toggleCrushStatus(mobNo, locationId, isCurrentlyCulled);
+  }
+});
 
-
-/**
- * 湧き潰しポイントを描画する（utils から移動済みと仮定）
- * @param {object} mob - モブデータ
- */
 function drawSpawnPoint(mob) {
     const state = getState();
     const card = DOM.colContainer.querySelector(`.mob-card[data-mob-no="${mob.No}"]`);
