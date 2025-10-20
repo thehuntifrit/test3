@@ -73,4 +73,4 @@ function drawSpawnPoint(mob) {
     }
 }
 
-export { drawSpawnPoint, handleCrushToggle, updateCrushUI, attachLocationEvents };
+export { drawSpawnPoint, handleCrushToggle, updateCrushUI };
