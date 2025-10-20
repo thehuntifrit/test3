@@ -1,34 +1,13 @@
 // cal.js
 
-// 🚨 修正1 (パス修正): 外部依存関係のインポート
-import { formatDuration } from "./dataManager.js"; // dataManager.js側にformatDurationは移動済 (前回提示のutils.jsから)
-
-// ----------------------------------------------------
-// 🔴 utils.js からの統合 (汎用時間・ユーティリティ)
-// ----------------------------------------------------
-
-function toJstAdjustedIsoString(date) {
-  const offsetMs = date.getTimezoneOffset() * 60000;
-  const jstOffsetMs = 9 * 60 * 60 * 1000;
-  const jstTime = date.getTime() - offsetMs + jstOffsetMs;
-  return new Date(jstTime).toISOString().slice(0, 16);
+// formatDuration
+function formatDuration(seconds) {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  return `${h.toString().padStart(2, "0")}h ${m.toString().padStart(2, "0")}m`;
 }
 
-function formatLastKillTime(timestamp) {
-  if (timestamp === 0) return "未報告";
-  const killTimeMs = timestamp * 1000;
-  const nowMs = Date.now();
-  const diffSeconds = Math.floor((nowMs - killTimeMs) / 1000);
-  if (diffSeconds < 3600) {
-    if (diffSeconds < 60) return `Just now`;
-    const minutes = Math.floor(diffSeconds / 60);
-    return `${minutes}m ago`;
-  }
-  const options = { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Tokyo" };
-  const date = new Date(killTimeMs);
-  return new Intl.DateTimeFormat("ja-JP", options).format(date);
-}
-
+// debounce
 function debounce(func, wait) {
   let timeout;
   return function executed(...args) {
@@ -36,10 +15,6 @@ function debounce(func, wait) {
     timeout = setTimeout(() => func(...args), wait);
   };
 }
-
-// ----------------------------------------------------
-// 🔴 cal.js 本体からの統合 (文言変更なし)
-// ----------------------------------------------------
 
 // エオルゼア時間 (Eorzea Time)
 function getEorzeaTime(date = new Date()) {
@@ -188,7 +163,4 @@ function calculateRepop(mob) {
   return { minRepop, maxRepop, elapsedPercent, timeRemaining, status, nextMinRepopDate };
 }
 
-// 🚨 修正1: 全てのエクスポートを整理
-export { getEorzeaTime, getEorzeaMoonPhase, getEorzeaWeatherSeed, getEorzeaWeather, checkMobSpawnCondition, 
-        findNextSpawnTime, calculateRepop, toJstAdjustedIsoString, formatLastKillTime, debounce
-};
+export { calculateRepop, checkMobSpawnCondition, findNextSpawnTime, getEorzeaTime, getEorzeaMoonPhase, getEorzeaWeatherSeed, getEorzeaWeather, formatDuration, debounce };
