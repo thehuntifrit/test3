@@ -13,7 +13,7 @@ import { closeReportModal } from "./modal.js";
 import { displayStatus } from "./uiRender.js";
 
 // ----------------------------------------------------
-// 🔴 firebase.js からの統合 (文言変更なし)
+// 🔴 firebase.js からの統合
 // ----------------------------------------------------
 
 const FIREBASE_CONFIG = {
@@ -45,17 +45,17 @@ async function initializeAuth() {
 }
 
 // ----------------------------------------------------
-// 🔴 firestore.js からの統合 (文言変更なし)
+// 🔴 firestore.js からの統合
 // ----------------------------------------------------
 
 // 🚨 修正1: functionsInstance を使用
 const functions = functionsInstance;
 const callUpdateCrushStatus = httpsCallable(functions, 'crushStatusUpdater');
 const callRevertStatus = httpsCallable(functions, 'revertStatus');
-const callGetServerTime = httpsCallable(functions, 'getServerTime'); // 🚨 修正2: サーバー時間統合のために追加
+const callGetServerTime = httpsCallable(functions, 'getServerTime');
 
 // ----------------------------------------------------
-// ✅ 修正2 (サーバー時間統合): getServerTimeUTC の定義
+// ✅ サーバー時間統合
 // ----------------------------------------------------
 
 export async function getServerTimeUTC() {
@@ -112,7 +112,7 @@ const submitReport = async (mobNo, timeISO, memo) => {
   }
 
   const killTimeDate = new Date(timeISO);
-  if (isNaN(killTimeDate.getTime())) { // Dateオブジェクトの有効性を確認
+  if (isNaN(killTimeDate.getTime())) {
     displayStatus("時刻形式が不正です。", "error");
     return;
   }
@@ -125,9 +125,7 @@ const submitReport = async (mobNo, timeISO, memo) => {
   displayStatus(`${mob.Name} 討伐時間報告中...`);
 
   try {
-    // ----------------------------------------------------
     // 🚨 修正2 (サーバー時間統合): サーバー時間を使用する
-    // ----------------------------------------------------
     const serverTimeMs = await getServerTimeUTC();
     const finalKillTimeDate = new Date(serverTimeMs);
 
@@ -210,7 +208,7 @@ const revertMobStatus = async (mobNo) => {
         const result = await callRevertStatus({
             mob_id: mobNo.toString(),
         });
-        
+
         if (result.data?.success) {
             displayStatus(`${mob.Name} の状態を直前のログへ巻き戻しました。`, "success");
         } else {
