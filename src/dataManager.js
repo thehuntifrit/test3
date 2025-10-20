@@ -174,4 +174,4 @@ async function setupApp() {
 
 // 🚨 修正1: 全てのエクスポートを整理
 export { setupApp, state, EXPANSION_MAP, getState, getMobByNo, setUserId, setBaseMobData, setMobs, setFilter, setOpenMobCardNo 
-        RANK_COLORS, PROGRESS_CLASSES, FILTER_TO_DATA_RANK_MAP, };
+        loadBaseMobData, RANK_COLORS, PROGRESS_CLASSES, FILTER_TO_DATA_RANK_MAP, };
