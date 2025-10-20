@@ -57,7 +57,7 @@ function drawSpawnPoint(mob) {
   }
 }
 
-export function attachLocationEvents() {
+function attachLocationEvents() {
   const overlayContainers = document.querySelectorAll(".spawn-points-overlay");
   if (!overlayContainers.length) return;
 
@@ -81,4 +81,4 @@ export function attachLocationEvents() {
   });
 }
 
-export { drawSpawnPoint, handleCrushToggle, updateCrushUI };
+export { drawSpawnPoint, handleCrushToggle, updateCrushUI, attachLocationEvents };
