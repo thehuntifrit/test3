@@ -33,4 +33,4 @@ function closeReportModal() {
   DOM.modalMemoInput.value = "";
 }
 
-export { openReportModal, closeReportModal, toJstAdjustedIsoString, DOMElements };
+export { openReportModal, closeReportModal, toJstAdjustedIsoString, toLocalIsoString };
