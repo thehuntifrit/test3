@@ -20,19 +20,16 @@ function handleCrushToggle(e) {
     return false;
 }
 
-function updateCrushUI() {
-    // UIの再描画が必要な際に外部から呼び出されるためのインターフェースとして残す
-}
-
-overlay.addEventListener("click", e => {
-  const point = e.target.closest(".spawn-point");
-  if (point && point.dataset.isInteractive === "true") {
-    const mobNo = point.dataset.mobNo;
-    const locationId = point.dataset.locationId;
-    const isCurrentlyCulled = point.dataset.isCulled === "true";
-    toggleCrushStatus(mobNo, locationId, isCurrentlyCulled);
+function updateCrushUI(mobNo, locationId, isCulled) {
+  const marker = document.querySelector(
+    `.spawn-point[data-mob-no="${mobNo}"][data-location-id="${locationId}"]`
+  );
+  if (marker) {
+    marker.dataset.isCulled = isCulled.toString();
+    marker.classList.toggle("spawn-point-culled", isCulled);
+    marker.title = `湧き潰し: ${isCulled ? "済" : "未"}`;
   }
-});
+}
 
 function drawSpawnPoint(mob) {
   const state = getState();
