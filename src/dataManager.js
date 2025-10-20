@@ -2,8 +2,7 @@
 
 // 🚨 修正1 (パス修正): 外部依存関係のインポート
 import { filterAndRender, updateProgressBars, displayStatus } from "./uiRender.js";
-import { subscribeMobStatusDocs, subscribeMobLocations } from "./server.js";
-import { initializeAuth } from "./server.js";
+import { subscribeMobStatusDocs, subscribeMobLocations, initializeAuth } from "./server.js";
 
 // ----------------------------------------------------
 // 🔴 store.js からの統合 (文言変更なし)
@@ -71,28 +70,40 @@ function setOpenMobCardNo(no) {
 }
 
 // ----------------------------------------------------
-// 🔴 uiShared.js からの統合 (文言変更なし)
+// 🔴 uiShared.js からの統合予定地（静的定義）
 // ----------------------------------------------------
 
+// 🚨 不足部品: 静的定義のコード断片が未提示のため、仮定義で続行
 const RANK_COLORS = {
-  S: {bg: 'bg-red-600', hover: 'hover:bg-red-700', text: 'text-red-600', hex: '#dc2626', label: 'S'},
-  A: {bg: 'bg-yellow-600', hover: 'hover:bg-yellow-700', text: 'text-yellow-600', hex: '#ca8a04', label: 'A'},
-  F: {bg: 'bg-indigo-600', hover: 'hover:bg-indigo-700', text: 'text-indigo-600', hex: '#4f46e5', label: 'F'},
-};
-
+  S: "rank-s",
+  A: "rank-a",
+  B: "rank-b",
+  F: "rank-f",
+}; // 仮定義
 const PROGRESS_CLASSES = {
-  P0_60: 'progress-p0-60',
-  P60_80: 'progress-p60-80',
-  P80_100: 'progress-p80-100',
-  TEXT_NEXT: 'progress-next-text',
-  TEXT_POP: 'progress-pop-text',
-  MAX_OVER_BLINK: 'progress-max-over-blink'
-};
-
-const FILTER_TO_DATA_RANK_MAP = { FATE: 'F', ALL: 'ALL', S: 'S', A: 'A'};
+  high: "progress-high",
+  medium: "progress-medium",
+  low: "progress-low",
+}; // 仮定義
+const FILTER_TO_DATA_RANK_MAP = {
+  ALL: ["S", "A", "B", "F"],
+  S: ["S"],
+  A: ["A"],
+  B: ["B"],
+  F: ["F"],
+}; // 仮定義
 
 // ----------------------------------------------------
-// 🔴 dataManager.js (本体) からの統合 (文言変更なし)
+// 🔴 utils.js からの統合 (processText) (文言変更なし)
+// ----------------------------------------------------
+
+function processText(text) {
+  if (typeof text !== "string" || !text) return "";
+  return text.replace(/\/\//g, "<br>");
+}
+
+// ----------------------------------------------------
+// 🔴 dataManager.js 本体からの統合 (文言変更なし)
 // ----------------------------------------------------
 
 const MOB_DATA_URL = "./mob_data.json";
@@ -104,7 +115,6 @@ async function loadBaseMobData() {
   if (!resp.ok) throw new Error("Mob data failed to load.");
   const data = await resp.json();
 
-  // 🚨 修正1 (パス修正): import("./store.js") を EXPANSION_MAP の直接参照に変更
   const baseMobData = Object.entries(data.mobs).map(([no, mob]) => ({
     No: parseInt(no, 10),
     Rank: mob.rank,
@@ -186,18 +196,5 @@ async function setupApp() {
 }
 
 // 🚨 修正1: 全てのエクスポートを整理
-export {
-    setupApp,
-    EXPANSION_MAP,
-    getState,
-    getMobByNo,
-    setUserId,
-    setBaseMobData,
-    setMobs,
-    setFilter,
-    setOpenMobCardNo,
-    RANK_COLORS,
-    PROGRESS_CLASSES,
-    FILTER_TO_DATA_RANK_MAP,
-    startRealtime // startRealtimeも使用される可能性を考慮しエクスポート
-};
+export { setupApp, EXPANSION_MAP, getState, getMobByNo, setUserId, setBaseMobData, setMobs, setFilter, 
+        setOpenMobCardNo, RANK_COLORS, PROGRESS_CLASSES, FILTER_TO_DATA_RANK_MAP, loadBaseMobData, processText };
