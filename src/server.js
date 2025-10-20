@@ -8,9 +8,9 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-analytics.js";
 
 // 🚨 修正1 (パス修正): ローカル依存関係のインポート
-import { getState } from "./dataManager.js"; // dataManager.js (状態管理を統合)
-import { closeReportModal } from "./modal.js"; // modal.js
-import { displayStatus } from "./uiRender.js"; // uiRender.js (displayStatusを移動)
+import { getState } from "./dataManager.js"; 
+import { closeReportModal } from "./modal.js"; 
+import { displayStatus } from "./uiRender.js"; 
 
 // ----------------------------------------------------
 // 🔴 firebase.js からの統合 (文言変更なし)
@@ -26,10 +26,10 @@ const FIREBASE_CONFIG = {  
 };
 
 const app = initializeApp(FIREBASE_CONFIG);
-// 🚨 修正1: db, auth, functionsInstance はローカルスコープで定義
+// 🚨 修正1: 宣言を const に変更し、functionsInstanceを定義
 const db = getFirestore(app);
 const auth = getAuth(app);
-const functionsInstance = getFunctions(app, "asia-northeast2"); // 🚨 functionsInstanceをインスタンス化
+const functionsInstance = getFunctions(app, "asia-northeast2");
 const analytics = getAnalytics(app);
 
 async function initializeAuth() {
@@ -43,6 +43,10 @@ async function initializeAuth() {
     });
   });
 }
+
+// 🚨 修正1: firestore.js側のgetFunctions(app)と競合するため、functionsInstanceを使用するように変更
+// export const functions = getFunctions(app); // <- firestore.js側のロジックにより削除
+// export { db, auth, initializeAuth }; // <- 末尾にまとめてエクスポート
 
 // ----------------------------------------------------
 // 🔴 firestore.js からの統合 (文言変更なし)
@@ -94,7 +98,7 @@ function subscribeMobLocations(onUpdate) {
   return unsub;
 }
 
-// 討伐報告 (submitReport)
+// 討伐報告
 const submitReport = async (mobNo, timeISO, memo) => {
   const state = getState();
   const userId = state.userId;
