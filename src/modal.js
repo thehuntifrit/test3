@@ -3,7 +3,7 @@
 import { DOM } from "./uiRender.js"; 
 import { displayStatus } from "./uiRender.js"; 
 import { getState } from "./dataManager.js";
-import { toJstAdjustedIsoString } from "./cal.js"; // JST時刻調整は cal.js に移すことが望ましい
+import { toJstAdjustedIsoString } from "./cal.js";
 
 function toLocalIsoString(date) {
   const pad = n => String(n).padStart(2, "0");
@@ -32,18 +32,5 @@ function closeReportModal() {
   DOM.modalTimeInput.value = "";
   DOM.modalMemoInput.value = "";
 }
-
-// DOMElements (責務: uiRender.js の DOM と重複するため、要検討)
-const DOMElements = {
-  reportSubmitBtn: document.getElementById("report-submit"),
-  reportModal: document.getElementById("report-modal"),
-  reportTimeInput: document.getElementById("report-time"),
-  reportMemoInput: document.getElementById("report-memo"),
-  mobList: document.getElementById("mob-list")
-};
-
-// submitReport は server.js に移動するため export から削除
-
-// 注意: handleModalSubmit はまだ提供されていません。
 
 export { openReportModal, closeReportModal, toJstAdjustedIsoString, DOMElements };
