@@ -45,7 +45,7 @@ async function initializeAuth() {
 }
 
 // サーバーUTC取得
-export async function getServerTimeUTC() {
+async function getServerTimeUTC() {
     const getServerTime = httpsCallable(functionsInstance, "getServerTime");
     const response = await getServerTime();
     return new Date(response.data.utc_now); // UTC基準
