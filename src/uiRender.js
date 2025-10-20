@@ -1,6 +1,6 @@
 // uiRender.js
 
-import { calculateRepop, findNextSpawnTime, formatDuration } from "./cal.js";
+import { calculateRepop, findNextSpawnTime, formatDuration, formatLastKillTime } from "./cal.js";
 import { drawSpawnPoint } from "./location.js";
 import { getState, setFilter, RANK_COLORS, PROGRESS_CLASSES, EXPANSION_MAP, FILTER_TO_DATA_RANK_MAP } from "./dataManager.js";
 import { debounce } from "./cal.js"; 
