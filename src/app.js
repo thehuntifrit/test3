@@ -133,31 +133,27 @@ function attachCardEvents() {
   });
 }
 
-// Window Resize Event (app.js の責務: attachEventListeners)
 function attachWindowResizeEvents() {
     window.addEventListener("resize", debounce(() => sortAndRedistribute(), 200));
 }
 
-// DOMContentLoaded でのイベント登録
 function attachEventListeners() {
-    renderRankTabs(); // 初期化時に呼び出し
-    attachFilterEvents();
-    attachCardEvents();
-    attachWindowResizeEvents();
-    // モーダルとロケーションのイベントは、modal.js と location.js の責務とする
-    attachModalEvents();
-    attachLocationEvents();
+  renderRankTabs();
+  attachFilterEvents();
+  attachCardEvents();
+  attachWindowResizeEvents();
+  attachModalEvents();
+  attachLocationEvents();
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    // 初期タブのclickCount整備（localStorage復元に合わせる）
-    DOM.rankTabs.querySelectorAll(".tab-button").forEach(btn => {
-        // 復元rankと一致するものは1、それ以外は0
-        const currentRank = JSON.parse(localStorage.getItem("huntFilterState"))?.rank || "ALL";
-        btn.dataset.clickCount = btn.dataset.rank === currentRank ? "1" : "0";
-    });
-    
-    setupApp();
+  attachEventListeners();
+  const currentRank = JSON.parse(localStorage.getItem("huntFilterState"))?.rank || "ALL";
+  DOM.rankTabs.querySelectorAll(".tab-button").forEach(btn => {
+    btn.dataset.clickCount = btn.dataset.rank === currentRank ? "1" : "0";
+  });
+
+  setupApp();
 });
 
 export { attachEventListeners };
