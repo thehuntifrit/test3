@@ -3,7 +3,7 @@
 import { calculateRepop, findNextSpawnTime, formatDuration } from "./cal.js";
 import { drawSpawnPoint } from "./location.js";
 import { getState, setFilter, RANK_COLORS, PROGRESS_CLASSES, EXPANSION_MAP, FILTER_TO_DATA_RANK_MAP } from "./dataManager.js";
-import { debounce } from "./cal.js"; // cal.js に移動済み
+import { debounce } from "./cal.js"; 
 
 // DOM 定義 (仕様に基づき、uiRender.jsの責務として組み込む)
 const DOM = {
@@ -149,7 +149,7 @@ function filterAndRender({ isInitialLoad = false } = {}) {
     const uiRank = state.filter.rank;
     const dataRank = FILTER_TO_DATA_RANK_MAP[uiRank] || uiRank;
     const areaSets = state.filter.areaSets; // ランクごとのエリア選択を保持している想定
-    const sortAndRedistribute = debounce(() => filterAndRender(), 200);
+    
     const filtered = state.mobs.filter(mob => {
         // --- ALL の場合 ---
         if (dataRank === "ALL") {
@@ -389,6 +389,17 @@ const renderAreaFilterPanel = () => {
     desktopPanel.appendChild(btn);
   });
 };
+
+const sortAndRedistribute = debounce(() => filterAndRender(), 200);
+
+const areaPanel = document.getElementById("area-filter-panel");
+
+function toggleAreaPanel(show) {
+    areaPanel.classList.toggle("hidden", !show);
+}
+
+toggleAreaPanel(true);  // 表示
+toggleAreaPanel(false); // 非表示
 
 function updateFilterUI() {
     const state = getState();
