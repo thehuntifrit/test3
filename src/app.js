@@ -1,19 +1,15 @@
 // app.js (統合後)
 
 import { setupApp } from "./dataManager.js";
-// attachEventListeners の中身を app.js 内に定義し、不要になった import を整理
 import { DOM } from "./uiRender.js"; // DOM は uiRender.js に移動済み
 
-// イベント処理に必要な依存関係を import (仕様に沿ってimport元を修正)
-import { getState, setFilter, setOpenMobCardNo, FILTER_TO_DATA_RANK_MAP } from "./dataManager.js"; // store.js => dataManager.js
-import { openReportModal, closeReportModal, toJstAdjustedIsoString, attachModalEvents } from "./modal.js"; // modal.js
-import { attachLocationEvents } from "./location.js"; // location.js
-import { submitReport, toggleCrushStatus } from "./server.js"; // firestore.js => server.js
-import { debounce } from "./cal.js"; // utils.js => cal.js
+import { getState, setFilter, setOpenMobCardNo, FILTER_TO_DATA_RANK_MAP } from "./dataManager.js"; 
+import { openReportModal, closeReportModal, toJstAdjustedIsoString, attachModalEvents } from "./modal.js"; 
+import { attachLocationEvents } from "./location.js"; 
+import { submitReport, toggleCrushStatus } from "./server.js"; 
+import { debounce } from "./cal.js"; 
 import { filterAndRender, renderRankTabs, renderAreaFilterPanel, sortAndRedistribute, toggleAreaFilterPanel } from "./uiRender.js";
-// ----- FILTER/RANK TABS EVENTS (app.js の責務: attachEventListeners) -----
 
-// Rank tabs / Area filter イベント登録
 function attachFilterEvents() {
   // Rank tabs
   DOM.rankTabs.addEventListener("click", e => {
