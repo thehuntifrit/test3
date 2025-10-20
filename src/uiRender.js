@@ -1,24 +1,9 @@
 // uiRender.js
 
-// 依存関係の修正:
-// 元の import { state, getState } from "./store.js"; => getState は dataManager.js へ
-// 元の import { calculateRepop, findNextSpawnTime } from "./cal.js"; => cal.js は仕様通り
-// 元の import { drawSpawnPoint, processText, formatDuration, formatLastKillTime } from "./utils.js";
-//    => drawSpawnPoint は location.js へ移動の仕様
-//    => processText は dataManager.js へ移動の仕様
-//    => formatDuration は cal.js へ移動の仕様
-//    => formatLastKillTime は移動先未定。一旦 "./cal.js" または元のパスに保留（注意点3に基づき、一旦元のimportを維持する）
-// 元の import { RANK_COLORS, PROGRESS_CLASSES, FILTER_TO_DATA_RANK_MAP, DOM } from "./uiShared.js";
-//    => RANK_COLORS, PROGRESS_CLASSES, FILTER_TO_DATA_RANK_MAP は dataManager.js へ移動の仕様
-//    => DOM は uiRender.js 内に定義が必要
-
-import { getState } from "./dataManager.js";
 import { calculateRepop, findNextSpawnTime, formatDuration } from "./cal.js";
 import { drawSpawnPoint } from "./location.js";
-import { processText, formatLastKillTime } from "./utils.js"; // processText は dataManager.js に移動の仕様だが、一旦元のimportを維持し、後でコードが揃った際に修正します。
-import { RANK_COLORS, PROGRESS_CLASSES, FILTER_TO_DATA_RANK_MAP } from "./dataManager.js";
-import { updateFilterUI } from "./filter.js";
-
+import { getState, setFilter, RANK_COLORS, PROGRESS_CLASSES, EXPANSION_MAP, FILTER_TO_DATA_RANK_MAP } from "./dataManager.js";
+import { debounce } from "./cal.js"; // cal.js に移動済み
 
 // DOM 定義 (仕様に基づき、uiRender.jsの責務として組み込む)
 const DOM = {
@@ -36,7 +21,6 @@ const DOM = {
   modalTimeInput: document.getElementById('report-datetime'),
   modalMemoInput: document.getElementById('report-memo')
 };
-
 
 // displayStatus (仕様に基づき、uiRender.jsの責務として組み込む)
 function displayStatus(message, type = "info") {
@@ -165,7 +149,7 @@ function filterAndRender({ isInitialLoad = false } = {}) {
     const uiRank = state.filter.rank;
     const dataRank = FILTER_TO_DATA_RANK_MAP[uiRank] || uiRank;
     const areaSets = state.filter.areaSets; // ランクごとのエリア選択を保持している想定
-
+    const sortAndRedistribute = debounce(() => filterAndRender(), 200);
     const filtered = state.mobs.filter(mob => {
         // --- ALL の場合 ---
         if (dataRank === "ALL") {
@@ -316,4 +300,128 @@ function updateProgressBars() {
     });
 }
 
-export { filterAndRender, distributeCards, updateProgressBars, createMobCard, displayStatus, DOM };
+const renderRankTabs = () => {
+    const state = getState();
+    const rankList = ["ALL", "S", "A", "FATE"];
+    const container = document.getElementById("rank-tabs"); // DOM.rankTabs を使用すべきだが、元のコードを維持
+    if (!container) return;
+    container.innerHTML = "";
+
+    // グリッドレイアウト適用
+    container.className = "grid grid-cols-4 gap-2";
+
+    rankList.forEach(rank => {
+        const isSelected = state.filter.rank === rank;
+        const btn = document.createElement("button");
+        btn.dataset.rank = rank;
+        btn.textContent = rank;
+        btn.className = `tab-button px-4 py-1.5 text-sm rounded font-semibold text-white text-center transition ${isSelected ? "bg-green-500" : "bg-gray-500 hover:bg-gray-400"
+            }`;
+        container.appendChild(btn);
+    });
+};
+
+const renderAreaFilterPanel = () => {
+  const state = getState();
+  const uiRank = state.filter.rank;
+  const dataRank = FILTER_TO_DATA_RANK_MAP[uiRank] || uiRank;
+
+  const areas = state.mobs
+    .filter(m => (dataRank === "A" || dataRank === "F") ? (m.Rank === dataRank || m.Rank.startsWith("B")) : (m.Rank === dataRank))
+    .reduce((set, m) => {
+      const mobExpansion = m.Rank.startsWith("B")
+        ? state.mobs.find(x => x.No === m.related_mob_no)?.Expansion || m.Expansion
+        : m.Expansion;
+      if (mobExpansion) set.add(mobExpansion);
+      return set;
+    }, new Set());
+
+  const currentSet = state.filter.areaSets[uiRank] instanceof Set ? state.filter.areaSets[uiRank] : new Set();
+  const isAllSelected = areas.size > 0 && currentSet.size === areas.size;
+
+  const sortedAreas = Array.from(areas).sort((a, b) => {
+    const indexA = Object.values(EXPANSION_MAP).indexOf(a);
+    const indexB = Object.values(EXPANSION_MAP).indexOf(b);
+    return indexB - indexA;
+  });
+
+  // 📱 スマホ用：横いっぱい2列
+  const mobilePanel = document.getElementById("area-filter-panel-mobile");
+  mobilePanel.innerHTML = "";
+  mobilePanel.className = "grid grid-cols-2 gap-2";
+
+  const allBtnMobile = document.createElement("button");
+  allBtnMobile.textContent = isAllSelected ? "全解除" : "全選択";
+  allBtnMobile.className = `area-filter-btn py-1 text-xs rounded font-semibold text-white text-center transition w-full ${isAllSelected ? "bg-red-500" : "bg-gray-500 hover:bg-gray-400"}`;
+  allBtnMobile.dataset.area = "ALL";
+  mobilePanel.appendChild(allBtnMobile);
+
+  sortedAreas.forEach(area => {
+    const isSelected = currentSet.has(area);
+    const btn = document.createElement("button");
+    btn.textContent = area;
+    btn.className = `area-filter-btn py-1 text-xs rounded font-semibold text-white text-center transition w-full ${isSelected ? "bg-green-500" : "bg-gray-500 hover:bg-gray-400"}`;
+    btn.dataset.area = area;
+    mobilePanel.appendChild(btn);
+  });
+
+  // 💻 PC用：ランクボタン下に収まる2列（ボタン幅制限）
+  const desktopPanel = document.getElementById("area-filter-panel-desktop");
+  desktopPanel.innerHTML = "";
+  desktopPanel.className = "grid grid-cols-2 gap-2";
+
+  const allBtnDesktop = document.createElement("button");
+  allBtnDesktop.textContent = isAllSelected ? "全解除" : "全選択";
+  allBtnDesktop.className = `area-filter-btn py-1 text-xs rounded font-semibold text-white text-center transition w-full max-w-[8rem] ${isAllSelected ? "bg-red-500" : "bg-gray-500 hover:bg-gray-400"}`;
+  allBtnDesktop.dataset.area = "ALL";
+  desktopPanel.appendChild(allBtnDesktop);
+
+  const spacer = document.createElement("div");
+  spacer.className = "hidden lg:block";
+  desktopPanel.appendChild(spacer);
+
+  sortedAreas.forEach(area => {
+    const isSelected = currentSet.has(area);
+    const btn = document.createElement("button");
+    btn.textContent = area;
+    btn.className = `area-filter-btn py-1 text-xs rounded font-semibold text-white text-center transition w-full max-w-[8rem] ${isSelected ? "bg-green-500" : "bg-gray-500 hover:bg-gray-400"}`;
+    btn.dataset.area = area;
+    desktopPanel.appendChild(btn);
+  });
+};
+
+function updateFilterUI() {
+    const state = getState();
+    const currentRankKeyForColor = FILTER_TO_DATA_RANK_MAP[state.filter.rank] || state.filter.rank;
+    DOM.rankTabs.querySelectorAll(".tab-button").forEach(btn => {
+        btn.classList.remove("bg-blue-800", "bg-red-800", "bg-yellow-800", "bg-indigo-800", "bg-gray-500", "hover:bg-gray-400"); // renderRankTabsと競合するため色を初期化
+        btn.classList.add("bg-gray-500");
+        if (btn.dataset.rank !== state.filter.rank) {
+            btn.dataset.clickCount = "0";
+        }
+        if (btn.dataset.rank === state.filter.rank) {
+            btn.classList.remove("bg-gray-500");
+            const rank = btn.dataset.rank;
+            btn.classList.add(
+                rank === "ALL" ? "bg-blue-800"
+                    : currentRankKeyForColor === "S" ? "bg-red-800"
+                        : currentRankKeyForColor === "A" ? "bg-yellow-800"
+                            : currentRankKeyForColor === "F" ? "bg-indigo-800"
+                                : "bg-gray-800"
+            );
+        } else {
+            btn.classList.add("hover:bg-gray-400");
+        }
+    });
+}
+
+function toggleAreaFilterPanel(forceClose = false) {
+    const state = getState();
+    if (state.filter.rank === "ALL") forceClose = true;
+    // DOM.areaFilterPanel を使用
+    DOM.areaFilterPanel.classList.toggle("hidden", forceClose);
+    if (!forceClose) renderAreaFilterPanel();
+}
+
+export { filterAndRender, distributeCards, updateProgressBars, createMobCard, displayStatus, DOM, 
+        renderAreaFilterPanel, renderRankTabs, toggleAreaFilterPanel, sortAndRedistribute, updateFilterUI, toggleAreaPanel };
