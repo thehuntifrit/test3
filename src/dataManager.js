@@ -70,28 +70,25 @@ function setOpenMobCardNo(no) {
 }
 
 // ----------------------------------------------------
-// 🔴 uiShared.js からの統合予定地（静的定義）
+// 🔴 uiShared.js からの統合 (静的定義) (文言変更なし)
 // ----------------------------------------------------
 
-// 🚨 不足部品: 静的定義のコード断片が未提示のため、仮定義で続行
 const RANK_COLORS = {
-  S: "rank-s",
-  A: "rank-a",
-  B: "rank-b",
-  F: "rank-f",
-}; // 仮定義
+  S: {bg: 'bg-red-600', hover: 'hover:bg-red-700', text: 'text-red-600', hex: '#dc2626', label: 'S'},
+  A: {bg: 'bg-yellow-600', hover: 'hover:bg-yellow-700', text: 'text-yellow-600', hex: '#ca8a04', label: 'A'},
+  F: {bg: 'bg-indigo-600', hover: 'hover:bg-indigo-700', text: 'text-indigo-600', hex: '#4f46e5', label: 'F'},
+};
+
 const PROGRESS_CLASSES = {
-  high: "progress-high",
-  medium: "progress-medium",
-  low: "progress-low",
-}; // 仮定義
-const FILTER_TO_DATA_RANK_MAP = {
-  ALL: ["S", "A", "B", "F"],
-  S: ["S"],
-  A: ["A"],
-  B: ["B"],
-  F: ["F"],
-}; // 仮定義
+  P0_60: 'progress-p0-60',
+  P60_80: 'progress-p60-80',
+  P80_100: 'progress-p80-100',
+  TEXT_NEXT: 'progress-next-text',
+  TEXT_POP: 'progress-pop-text',
+  MAX_OVER_BLINK: 'progress-max-over-blink'
+};
+
+const FILTER_TO_DATA_RANK_MAP = { FATE: 'F', ALL: 'ALL', S: 'S', A: 'A'};
 
 // ----------------------------------------------------
 // 🔴 utils.js からの統合 (processText) (文言変更なし)
@@ -197,4 +194,5 @@ async function setupApp() {
 
 // 🚨 修正1: 全てのエクスポートを整理
 export { setupApp, EXPANSION_MAP, getState, getMobByNo, setUserId, setBaseMobData, setMobs, setFilter, 
-        setOpenMobCardNo, RANK_COLORS, PROGRESS_CLASSES, FILTER_TO_DATA_RANK_MAP, loadBaseMobData, processText };
+        etOpenMobCardNo, RANK_COLORS, PROGRESS_CLASSES, FILTER_TO_DATA_RANK_MAP, processText
+};
