@@ -185,4 +185,4 @@ function formatLastKillTime(timestamp) {
   return new Intl.DateTimeFormat("ja-JP", options).format(date);
 }
 
-export { calculateRepop, checkMobSpawnCondition, findNextSpawnTime, getEorzeaTime, getEorzeaMoonPhase, getEorzeaWeatherSeed, getEorzeaWeather, formatDuration, debounce, toJstAdjustedIsoString };
+export { calculateRepop, checkMobSpawnCondition, findNextSpawnTime, getEorzeaTime, getEorzeaMoonPhase, getEorzeaWeatherSeed, getEorzeaWeather, formatDuration, debounce, toJstAdjustedIsoString, formatLastKillTime };
