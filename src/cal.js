@@ -177,7 +177,7 @@ function calculateRepop(mob) {
   }
 
   // 条件付きモブ（moonPhase, timeRange, weather など）がある場合は補正
-  if (mob.moonPhase || mob.timeRange || mob.weather) {
+  if (mob.moonPhase || mob.timeRange || mob.weatherSeedRange || mob.weatherSeedRanges) {
     nextMinRepopDate = findNextSpawnTime(mob, nextMinRepopDate || new Date());
   }
 
@@ -189,10 +189,6 @@ function calculateRepop(mob) {
     status,
     nextMinRepopDate
   };
-}
-
-  const nextMinRepopDate = minRepop > now ? new Date(minRepop * 1000) : null;
-  return { minRepop, maxRepop, elapsedPercent, timeRemaining, status, nextMinRepopDate };
 }
 
 function formatLastKillTime(timestamp) {
