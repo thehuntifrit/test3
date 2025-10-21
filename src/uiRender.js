@@ -434,13 +434,22 @@ function updateFilterUI() {
     });
 }
 
-function toggleAreaFilterPanel(forceClose = false) {
-    const state = getState();
-    if (state.filter.rank === "ALL") forceClose = true;
-    // DOM.areaFilterPanel を使用
-    DOM.areaFilterPanel.classList.toggle("hidden", forceClose);
-    if (!forceClose) renderAreaFilterPanel();
+// 討伐報告受信ハンドラ
+function onKillReportReceived(mobId, kill_time) {
+  const mob = mobsById[mobId];
+  if (!mob) return;
+
+  mob.last_kill_time = Number(kill_time);
+  mob.repopInfo = calculateRepop(mob);
+
+  // 即UI更新
+  updateProgressBars();
 }
+
+// 定期ループ（末尾に追加）
+setInterval(() => {
+  updateProgressBars();
+}, 10000); // 10秒ごと
 
 export { filterAndRender, distributeCards, updateProgressBars, createMobCard, displayStatus, DOM, 
         renderAreaFilterPanel, renderRankTabs, toggleAreaFilterPanel, sortAndRedistribute, updateFilterUI, toggleAreaPanel };
