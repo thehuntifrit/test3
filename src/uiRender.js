@@ -129,7 +129,6 @@ function createMobCard(mob) {
 }
 
 // filterAndRender
-// filterAndRender
 function filterAndRender({ isInitialLoad = false } = {}) {
     const state = getState();
     const uiRank = state.filter.rank;
