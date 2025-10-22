@@ -161,5 +161,5 @@ const unsubLoc = subscribeMobLocations(locationsMap => {
 });
 unsubscribes.push(unsubLoc);
 
-export { setupApp, state, EXPANSION_MAP, getState, getMobByNo, setUserId, setBaseMobData, setMobs, setFilter, setOpenMobCardNo, 
+export { state, EXPANSION_MAP, getState, getMobByNo, setUserId, setBaseMobData, setMobs, setFilter, setOpenMobCardNo, 
          RANK_COLORS, PROGRESS_CLASSES, FILTER_TO_DATA_RANK_MAP };
