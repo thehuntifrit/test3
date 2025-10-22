@@ -22,7 +22,6 @@ const DOM = {
   modalMemoInput: document.getElementById('report-memo')
 };
 
-// displayStatus (仕様に基づき、uiRender.jsの責務として組み込む)
 function displayStatus(message, type = "info") {
   const el = document.getElementById("status-message");
   if (!el) return;
@@ -31,7 +30,6 @@ function displayStatus(message, type = "info") {
   setTimeout(() => { el.textContent = ""; }, 5000);
 }
 
-// processText
 function processText(text) {
   if (typeof text !== "string" || !text) return "";
   return text.replace(/\/\//g, "<br>");
@@ -39,51 +37,32 @@ function processText(text) {
 
 // createMobCard
 function createMobCard(mob) {
-    const rank = mob.Rank;
-    const rankConfig = RANK_COLORS[rank] || RANK_COLORS.A;
-    const rankLabel = rankConfig.label || rank;
+  const rank = mob.Rank;
+  const rankConfig = RANK_COLORS[rank] || RANK_COLORS.A;
+  const rankLabel = rankConfig.label || rank;
 
-    const progressText = mob.repopInfo?.timeRemaining || "Calculating...";
-    const lastKillDisplay = formatLastKillTime(mob.last_kill_time);
-    const absFmt = { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tokyo' };
+  const isExpandable = rank === "S";
+  const { openMobCardNo } = getState();
+  const isOpen = isExpandable && mob.No === openMobCardNo;
 
-    // リポップ計算による最小再出現時間
-    const nextTimeDisplay = mob.repopInfo?.nextMinRepopDate
-        ? new Intl.DateTimeFormat('ja-JP', absFmt).format(mob.repopInfo.nextMinRepopDate)
-        : '未確定';
+  const isS_LastOne = rank === "S" && mob.spawn_points && mob.spawn_points.some(
+    p => p.is_last_one && (p.mob_ranks.includes("S") || p.mob_ranks.includes("A"))
+  );
 
-    // 天候シード方式による「次回条件成立時間」
-    const nextConditionTime = findNextSpawnTime(mob);
-    const nextConditionDisplay = nextConditionTime
-        ? new Intl.DateTimeFormat('ja-JP', absFmt).format(nextConditionTime)
-        : '未確定';
+  const spawnPointsHtml = (rank === "S" && mob.Map)
+    ? (mob.spawn_points ?? []).map(point => drawSpawnPoint(
+        point,
+        mob.spawn_cull_status,
+        mob.No,
+        mob.Rank,
+        point.is_last_one,
+        isS_LastOne,
+        mob.last_kill_time,
+        mob.prev_kill_time
+      )).join("")
+    : "";
 
-    const prevTimeDisplay = mob.last_kill_time > 0
-        ? new Intl.DateTimeFormat('ja-JP', absFmt).format(new Date(mob.last_kill_time * 1000))
-        : '未報告';
-
-    const isExpandable = rank === "S";
-    const { openMobCardNo } = getState();
-    const isOpen = isExpandable && mob.No === openMobCardNo;
-
-    const isS_LastOne = rank === "S" && mob.spawn_points && mob.spawn_points.some(
-        p => p.is_last_one && (p.mob_ranks.includes("S") || p.mob_ranks.includes("A"))
-    );
-
-    const spawnPointsHtml = (rank === "S" && mob.Map)
-        ? (mob.spawn_points ?? []).map(point => drawSpawnPoint(
-            point,
-            mob.spawn_cull_status,
-            mob.No,
-            mob.Rank,
-            point.is_last_one,
-            isS_LastOne,
-            mob.last_kill_time,
-            mob.prev_kill_time
-        )).join("")
-        : "";
-
-    const cardHeaderHTML = `
+  const cardHeaderHTML = `
 <div class="px-2 py-1 space-y-1 bg-gray-800/70" data-toggle="card-header">
   <!-- 上段：ランク・モブ名・報告ボタン -->
   <div class="grid grid-cols-[auto_1fr_auto] items-center w-full gap-2">
@@ -98,40 +77,40 @@ function createMobCard(mob) {
       <span class="text-xs text-gray-400 truncate">${mob.Area} (${mob.Expansion})</span>
     </div>
 
-    <!-- 右端：報告ボタン（即時報告と同じ構造） -->
+    <!-- 右端：報告ボタン（見た目は統一、動作だけ分岐） -->
     <div class="flex-shrink-0 flex items-center justify-end">
-      <button data-report-type="${rank === 'A' || rank === 'F' ? 'instant' : 'modal'}" data-mob-no="${mob.No}"
-        class="w-8 h-8 flex items-center justify-center text-[12px] rounded bg-${rank === 'A' || rank === 'F' ? 'green' : 'green'}-600 
-        hover:bg-${rank === 'A' || rank === 'F' ? 'green' : 'green'}-800 selected:bg-${rank === 'A' || rank === 'F' ? 'red' : 'green'}-400 
-        text-white font-semibold transition text-center leading-tight whitespace-pre-line">${rank === 'A' || rank === 'F' ? '報告<br>する' : '報告<br>する'}</button>
+      <button 
+        data-report-type="${rank === 'A' || rank === 'F' ? 'instant' : 'modal'}" 
+        data-mob-no="${mob.No}"
+        class="w-8 h-8 flex items-center justify-center text-[12px] rounded 
+               bg-green-600 hover:bg-green-800 selected:bg-green-400 
+               text-white font-semibold transition text-center leading-tight whitespace-pre-line">
+        報告<br>する
+      </button>
     </div>
   </div>
   
-  <!-- 下段：プログレスバー -->
-    <div class="progress-bar-wrapper h-6 rounded-full relative overflow-hidden transition-all duration-100 ease-linear">
-      <div class="progress-bar-bg absolute left-0 top-0 h-full rounded-full transition-all duration-100 ease-linear" style="width: ${mob.repopInfo?.elapsedPercent || 0}%"></div>
-      <div class="progress-text absolute inset-0 flex items-center justify-center text-sm font-semibold" style="line-height: 1;">
-        <div class="w-full grid grid-cols-3 items-center text-sm font-semibold" style="line-height:1;">
-          <div class="px-2 text-left">${mob.repopInfo?.remainingStr || ""}</div>
-          <div class="text-center">${mob.repopInfo?.elapsedPercent?.toFixed?.(0) || 0}%</div>
-          <div class="px-2 text-right">Next: ${mob.repopInfo?.nextMinRepopDate ? new Intl.DateTimeFormat('ja-JP', absFmt).format(mob.repopInfo.nextMinRepopDate) : "未確定"}</div>
-        </div>
-      </div>
-    </div>
+  <!-- 下段：プログレスバー（構造のみ） -->
+  <div class="progress-bar-wrapper h-6 rounded-full relative overflow-hidden transition-all duration-100 ease-linear">
+    <div class="progress-bar-bg absolute left-0 top-0 h-full rounded-full transition-all duration-100 ease-linear" style="width: 0%"></div>
+    <div class="progress-text absolute inset-0 text-sm font-semibold" style="line-height: 1;"></div>
+  </div>
+</div>
 `;
 
-    const expandablePanelHTML = isExpandable ? `
+  const expandablePanelHTML = isExpandable ? `
 <div class="expandable-panel ${isOpen ? 'open' : ''}">
-  <div class="px-2 py-1 text-sm space-y-0.5">
+  <div class="px-1 py-1 text-sm space-y-0.5">
     <div class="flex justify-between items-start flex-wrap">
-      <div class="w-full text-right text-sm font-mono text-green-300">次回: ${nextTimeDisplay}</div>
-      <div class="w-full text-right text-xs text-gray-400 pt-1">前回: ${lastKillDisplay}</div>
-      <div class="w-full text-left text-sm text-gray-300 mb-2">Memo: ${mob.last_kill_memo || 'なし'}</div>
+      <div class="w-full text-right text-sm font-mono text-green-300" data-next-time></div>
+      <div class="w-full text-right text-xs text-gray-400 pt-1" data-last-kill></div>
+      <div class="w-full text-left text-sm text-gray-300 mb-2">Memo: <span data-last-memo></span></div>
       <div class="w-full font-semibold text-yellow-300 border-t border-gray-600">抽出条件</div>
       <div class="w-full text-gray-300 mb-2">${processText(mob.Condition)}</div>
     </div>
     ${mob.Map && rank === 'S' ? `
-    <div class="map-content py-0.5 flex justify-center relative"><img src="./maps/${mob.Map}" alt="${mob.Area} Map"
+    <div class="map-content py-0.5 flex justify-center relative">
+      <img src="./maps/${mob.Map}" alt="${mob.Area} Map"
            class="mob-crush-map w-full h-auto rounded shadow-lg border border-gray-600" data-mob-no="${mob.No}">
       <div class="map-overlay absolute inset-0" data-mob-no="${mob.No}">${spawnPointsHtml}</div>
     </div>
@@ -140,7 +119,7 @@ function createMobCard(mob) {
 </div>
 ` : '';
 
-    return `
+  return `
 <div class="mob-card bg-gray-700 rounded-lg shadow-xl overflow-hidden cursor-pointer border border-gray-700 transition duration-150"
      data-mob-no="${mob.No}" data-rank="${rank}">
   ${cardHeaderHTML}
@@ -148,76 +127,79 @@ function createMobCard(mob) {
 </div>
 `;
 }
+
+// filterAndRender
 // filterAndRender
 function filterAndRender({ isInitialLoad = false } = {}) {
-    const state = getState();
-    const uiRank = state.filter.rank;
-    const dataRank = FILTER_TO_DATA_RANK_MAP[uiRank] || uiRank;
-    const areaSets = state.filter.areaSets; // ランクごとのエリア選択を保持している想定
+    const state = getState();
+    const uiRank = state.filter.rank;
+    const dataRank = FILTER_TO_DATA_RANK_MAP[uiRank] || uiRank;
+    const areaSets = state.filter.areaSets; // ランクごとのエリア選択を保持している想定
     
-    const filtered = state.mobs.filter(mob => {
-        // --- ALL の場合 ---
-        if (dataRank === "ALL") {
-            // mob のランクに対応するエリアセットを取得
-            const mobRank = mob.Rank.startsWith("B")
-                ? (mob.Rank.includes("A") ? "A" : "F") // B系はA/Fに寄せる
-                : mob.Rank;
-            if (!["S", "A", "F"].includes(mobRank)) return false;
+    const filtered = state.mobs.filter(mob => {
+        // --- ALL の場合 ---
+        if (dataRank === "ALL") {
+            // mob のランクに対応するエリアセットを取得
+            const mobRank = mob.Rank.startsWith("B")
+                ? (mob.Rank.includes("A") ? "A" : "F") // B系はA/Fに寄せる
+                : mob.Rank;
+            if (!["S", "A", "F"].includes(mobRank)) return false;
 
-            const areaSetForRank = areaSets[mobRank];
-            const mobExpansion = mob.Rank.startsWith("B")
-                ? state.mobs.find(m => m.No === mob.related_mob_no)?.Expansion || mob.Expansion
-                : mob.Expansion;
+            const areaSetForRank = areaSets[mobRank];
+            const mobExpansion = mob.Rank.startsWith("B")
+                ? state.mobs.find(m => m.No === mob.related_mob_no)?.Expansion || mob.Expansion
+                : mob.Expansion;
 
-            // そのランクでエリア選択が無ければ表示対象
-            if (!areaSetForRank || !(areaSetForRank instanceof Set) || areaSetForRank.size === 0) {
-                return true;
-            }
-            // 選択されているエリアに含まれていれば表示
-            return areaSetForRank.has(mobExpansion);
-        }
+            // そのランクでエリア選択が無ければ表示対象
+            if (!areaSetForRank || !(areaSetForRank instanceof Set) || areaSetForRank.size === 0) {
+                return true;
+            }
+            // 選択されているエリアに含まれていれば表示
+            return areaSetForRank.has(mobExpansion);
+        }
 
-        // --- A/F/S 単独ランクの場合 ---
-        if (dataRank === "A") {
-            if (mob.Rank !== "A" && !mob.Rank.startsWith("B")) return false;
-        } else if (dataRank === "F") {
-            if (mob.Rank !== "F" && !mob.Rank.startsWith("B")) return false;
-        } else if (mob.Rank !== dataRank) {
-            return false;
-        }
+        // --- A/F/S 単独ランクの場合 ---
+        if (dataRank === "A") {
+            if (mob.Rank !== "A" && !mob.Rank.startsWith("B")) return false;
+        } else if (dataRank === "F") {
+            if (mob.Rank !== "F" && !mob.Rank.startsWith("B")) return false;
+        } else if (mob.Rank !== dataRank) {
+            return false;
+        }
 
-        const mobExpansion = mob.Rank.startsWith("B")
-            ? state.mobs.find(m => m.No === mob.related_mob_no)?.Expansion || mob.Expansion
-            : mob.Expansion;
+        const mobExpansion = mob.Rank.startsWith("B")
+            ? state.mobs.find(m => m.No === mob.related_mob_no)?.Expansion || mob.Expansion
+            : mob.Expansion;
 
-        const areaSet = areaSets[uiRank];
-        if (!areaSet || !(areaSet instanceof Set) || areaSet.size === 0) return true;
-        return areaSet.has(mobExpansion);
-    });
+        const areaSet = areaSets[uiRank];
+        if (!areaSet || !(areaSet instanceof Set) || areaSet.size === 0) return true;
+        return areaSet.has(mobExpansion);
+    });
 
-    // ソート復活（表示の安定性のため、No昇順に統一。必要ならelapsedPercent優先へ切替可能）
-    filtered.sort((a, b) => a.No - b.No);
+    filtered.sort((a, b) => a.No - b.No);
 
-    // DOM構築（文字列→要素）＋平文問題の回避
-    const frag = document.createDocumentFragment();
-    filtered.forEach(mob => {
-        const temp = document.createElement("div");
-        temp.innerHTML = createMobCard(mob);
-        frag.appendChild(temp.firstElementChild);
-    });
+    const frag = document.createDocumentFragment();
+    filtered.forEach(mob => {
+        const temp = document.createElement("div");
+        temp.innerHTML = createMobCard(mob);
+        const card = temp.firstElementChild;
+        frag.appendChild(card);
 
-    DOM.masterContainer.innerHTML = "";
-    DOM.masterContainer.appendChild(frag);
-    distributeCards();
-    updateFilterUI(); // タブ強調/クリックカウントの反映
+        updateProgressText(card, mob);
+        updateProgressBar(card, mob);
+        updateExpandablePanel(card, mob);
+    });
 
-    if (isInitialLoad) {
-        // 初期レンダリング後に進捗バーを一度更新
-        updateProgressBars();
-    }
+    DOM.masterContainer.innerHTML = "";
+    DOM.masterContainer.appendChild(frag);
+    distributeCards();
+    updateFilterUI();
+
+    if (isInitialLoad) {
+        updateProgressBars();
+    }
 }
 
-// distributeCards
 function distributeCards() {
     const width = window.innerWidth;
     const md = 768;
@@ -243,69 +225,87 @@ function distributeCards() {
 }
 
 // updateProgressBars
-function updateProgressBars() {
-    const state = getState();
-    state.mobs = state.mobs.map(m => ({ ...m, repopInfo: calculateRepop(m) }));
+function updateProgressBar(card, mob) {
+  const bar = card.querySelector(".progress-bar-bg");
+  const wrapper = bar?.parentElement;
+  const text = card.querySelector(".progress-text");
+  if (!bar || !wrapper || !text) return;
 
-    document.querySelectorAll(".mob-card").forEach(card => {
-        const mobNo = parseInt(card.dataset.mobNo, 10);
-        const mob = state.mobs.find(m => m.No === mobNo);
-        if (!mob?.repopInfo) return;
+  const { elapsedPercent, status } = mob.repopInfo;
 
-        const { elapsedPercent, status, nextMinRepopDate, maxRepop } = mob.repopInfo;
-        const bar = card.querySelector(".progress-bar-bg");
-        const text = card.querySelector(".progress-text");
-        const wrapper = bar?.parentElement;
-        if (!bar || !text || !wrapper) return;
+  bar.style.transition = "width linear 60s";
+  bar.style.width = `${elapsedPercent}%`;
 
-        // --- 条件成立時間と比較 ---
-        const conditionTime = findNextSpawnTime(mob);
-        let displayTime = null;
-        if (nextMinRepopDate && conditionTime) {
-            displayTime = conditionTime > nextMinRepopDate ? conditionTime : nextMinRepopDate;
-        } else {
-            displayTime = nextMinRepopDate || conditionTime;
-        }
+  bar.classList.remove(PROGRESS_CLASSES.P0_60, PROGRESS_CLASSES.P60_80, PROGRESS_CLASSES.P80_100);
+  text.classList.remove(PROGRESS_CLASSES.TEXT_NEXT, PROGRESS_CLASSES.TEXT_POP);
+  wrapper.classList.remove(PROGRESS_CLASSES.MAX_OVER_BLINK);
 
-        const absFmt = { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tokyo' };
-        const nextTimeStr = displayTime
-            ? new Intl.DateTimeFormat('ja-JP', absFmt).format(displayTime)
-            : "未確定";
+  if (status === "PopWindow") {
+    if (elapsedPercent <= 60) bar.classList.add(PROGRESS_CLASSES.P0_60);
+    else if (elapsedPercent <= 80) bar.classList.add(PROGRESS_CLASSES.P60_80);
+    else bar.classList.add(PROGRESS_CLASSES.P80_100);
+    text.classList.add(PROGRESS_CLASSES.TEXT_POP);
+  } else if (status === "MaxOver") {
+    bar.classList.add(PROGRESS_CLASSES.P80_100);
+    text.classList.add(PROGRESS_CLASSES.TEXT_POP);
+    wrapper.classList.add(PROGRESS_CLASSES.MAX_OVER_BLINK);
+  } else {
+    text.classList.add(PROGRESS_CLASSES.TEXT_NEXT);
+  }
+}
 
-        const remainingStr = maxRepop
-            ? `残り ${formatDuration(maxRepop - Date.now() / 1000)}`
-            : "";
+function updateProgressText(card, mob) {
+  const text = card.querySelector(".progress-text");
+  if (!text) return;
 
-        // --- プログレスバー更新 ---
-        bar.style.width = `${elapsedPercent}%`;
+  const { elapsedPercent, nextMinRepopDate, maxRepop } = mob.repopInfo;
+  const conditionTime = findNextSpawnTime(mob);
+  const displayTime = (nextMinRepopDate && conditionTime)
+    ? (conditionTime > nextMinRepopDate ? conditionTime : nextMinRepopDate)
+    : (nextMinRepopDate || conditionTime);
 
-        // 3カラム配置に変更
-        text.innerHTML = `
-          <div class="w-full grid grid-cols-3 items-center text-sm font-semibold" style="line-height:1;">
-            <div class="px-2 text-left">${remainingStr}</div> <!-- 左：残り -->
-            <div class="text-center">${elapsedPercent.toFixed(0)}%</div> <!-- 中央：次回 -->
-            <div class="px-2 text-right">Next: ${nextTimeStr}</div> <!-- 右：％ -->
-          </div>
-        `;
+  const absFmt = { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tokyo' };
+  const nextTimeStr = displayTime
+    ? new Intl.DateTimeFormat('ja-JP', absFmt).format(displayTime)
+    : "未確定";
 
-        // --- 色・クラス制御 ---
-        bar.classList.remove(PROGRESS_CLASSES.P0_60, PROGRESS_CLASSES.P60_80, PROGRESS_CLASSES.P80_100);
-        text.classList.remove(PROGRESS_CLASSES.TEXT_NEXT, PROGRESS_CLASSES.TEXT_POP);
-        wrapper.classList.remove(PROGRESS_CLASSES.MAX_OVER_BLINK);
+  const remainingStr = maxRepop
+    ? `残り ${formatDuration(maxRepop - Date.now() / 1000)}`
+    : "";
 
-        if (status === "PopWindow") {
-            if (elapsedPercent <= 60) bar.classList.add(PROGRESS_CLASSES.P0_60);
-            else if (elapsedPercent <= 80) bar.classList.add(PROGRESS_CLASSES.P60_80);
-            else bar.classList.add(PROGRESS_CLASSES.P80_100);
-            text.classList.add(PROGRESS_CLASSES.TEXT_POP);
-        } else if (status === "MaxOver") {
-            bar.classList.add(PROGRESS_CLASSES.P80_100);
-            text.classList.add(PROGRESS_CLASSES.TEXT_POP);
-            wrapper.classList.add(PROGRESS_CLASSES.MAX_OVER_BLINK);
-        } else {
-            text.classList.add(PROGRESS_CLASSES.TEXT_NEXT);
-        }
-    });
+  // 3カラム：左=残り、中央=次回、右=%
+  text.innerHTML = `
+    <div class="w-full grid grid-cols-2 items-center text-sm font-semibold" style="line-height:1;">
+      <div class="pl-2 text-left">${remainingStr} ( ${elapsedPercent.toFixed(0)}% )</div>
+      <div class="pr-2 text-right">Next: ${nextTimeStr}</div>
+    </div>
+  `;
+}
+
+function updateExpandablePanel(card, mob) {
+  const elNext = card.querySelector("[data-next-time]");
+  const elLast = card.querySelector("[data-last-kill]");
+  const elMemo = card.querySelector("[data-last-memo]");
+  if (!elNext && !elLast && !elMemo) return;
+
+  const absFmt = { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tokyo' };
+
+  const nextMin = mob.repopInfo?.nextMinRepopDate;
+  const conditionTime = findNextSpawnTime(mob);
+  const displayTime = (nextMin && conditionTime)
+    ? (conditionTime > nextMin ? conditionTime : nextMin)
+    : (nextMin || conditionTime);
+
+  const nextStr = displayTime
+    ? new Intl.DateTimeFormat('ja-JP', absFmt).format(displayTime)
+    : "未確定";
+
+  const lastStr = formatLastKillTime(mob.last_kill_time);
+  const memoStr = mob.last_kill_memo || "なし";
+
+  if (elNext) elNext.textContent = `次回: ${nextStr}`;
+  if (elLast) elLast.textContent = `前回: ${lastStr}`;
+  if (elMemo) elMemo.textContent = memoStr;
 }
 
 const renderRankTabs = () => {
@@ -442,14 +442,27 @@ function onKillReportReceived(mobId, kill_time) {
   mob.last_kill_time = Number(kill_time);
   mob.repopInfo = calculateRepop(mob);
 
-  // 即UI更新
-  updateProgressBars();
+  // 即時更新
+  const card = document.querySelector(`.mob-card[data-mob-no="${mob.No}"]`);
+  if (card) {
+    updateProgressText(card, mob);
+    updateProgressBar(card, mob);
+  }
 }
 
-// 定期ループ（末尾に追加）
+// 定期ループ（60秒ごとに全カードを更新）
 setInterval(() => {
-  updateProgressBars();
-}, 10000); // 10秒ごと
+  const state = getState();
+  state.mobs.forEach(mob => {
+    const card = document.querySelector(`.mob-card[data-mob-no="${mob.No}"]`);
+    if (card) {
+      updateProgressText(card, mob);
+      updateProgressBar(card, mob);
+    }
+  });
+}, 60000);
 
-export { filterAndRender, distributeCards, updateProgressBars, createMobCard, displayStatus, DOM, 
-        renderAreaFilterPanel, renderRankTabs, toggleAreaFilterPanel, sortAndRedistribute, updateFilterUI, toggleAreaPanel };
+// ← この下に export をまとめる
+export { filterAndRender, distributeCards, updateProgressText, updateProgressBar, createMobCard, displayStatus, DOM,
+        renderAreaFilterPanel, renderRankTabs, sortAndRedistribute, updateFilterUI, toggleAreaPanel, onKillReportReceived
+};
