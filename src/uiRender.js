@@ -1,4 +1,3 @@
-
 // uiRender.js
 
 import { calculateRepop, findNextSpawnTime, formatDuration, formatLastKillTime } from "./cal.js";
@@ -81,15 +80,11 @@ function createMobCard(mob) {
     <!-- 右端：報告ボタン（見た目は統一、動作だけ分岐） -->
     <div class="flex-shrink-0 flex items-center justify-end">
       <button 
-        data-report-type="${rank === 'A' || rank === 'F' ? 'instant' : 'modal'}" 
-        data-mob-no="${mob.No}"
-        class="w-8 h-8 flex items-center justify-center text-[12px] rounded 
-               bg-green-600 hover:bg-green-800 selected:bg-green-400 
-               text-white font-semibold transition text-center leading-tight whitespace-pre-line">
-        報告<br>する
-      </button>
-    </div>
-  </div>
+        data-report-type="${rank === 'A' || rank === 'F' ? 'instant' : 'modal'}" data-mob-no="${mob.No}"
+        class="w-8 h-8 flex items-center justify-center text-[12px] rounded bg-green-600 hover:bg-green-800 selected:bg-green-400 
+               text-white font-semibold transition text-center leading-tight whitespace-pre-line">報告<br>する</button>
+          </div>
+        </div>
   
   <!-- 下段：プログレスバー（構造のみ） -->
   <div class="progress-bar-wrapper h-6 rounded-full relative overflow-hidden transition-all duration-100 ease-linear">
@@ -100,8 +95,8 @@ function createMobCard(mob) {
 `;
 
   const expandablePanelHTML = isExpandable ? `
-<div class="expandable-panel ${isOpen ? 'open' : ''}">
-  <div class="px-1 py-1 text-sm space-y-0.5">
+<div class="expandable-panel bg-gray-800/70 ${isOpen ? 'open' : ''}">
+  <div class="px-1 py-0 text-sm space-y-0.5">
     <div class="flex justify-between items-start flex-wrap">
       <div class="w-full text-right text-sm font-mono text-green-300" data-next-time></div>
       <div class="w-full text-right text-xs text-gray-400 pt-1" data-last-kill></div>
