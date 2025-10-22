@@ -1,6 +1,5 @@
 // dataManager.js
 
-// 🚨 修正1 (パス修正): 外部依存関係のインポート
 import { filterAndRender, displayStatus } from "./uiRender.js";
 import { subscribeMobStatusDocs, subscribeMobLocations, initializeAuth } from "./server.js";
 
@@ -160,6 +159,7 @@ const unsubLoc = subscribeMobLocations(locationsMap => {
   displayStatus("湧き潰しデータ更新完了。", "success");
 });
 unsubscribes.push(unsubLoc);
+}
 
 export { state, EXPANSION_MAP, getState, getMobByNo, setUserId, setBaseMobData, setMobs, setFilter, setOpenMobCardNo, 
          RANK_COLORS, PROGRESS_CLASSES, FILTER_TO_DATA_RANK_MAP };
