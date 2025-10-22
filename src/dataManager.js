@@ -1,7 +1,7 @@
 // dataManager.js
 
 // 🚨 修正1 (パス修正): 外部依存関係のインポート
-import { filterAndRender, updateProgressBars, displayStatus } from "./uiRender.js";
+import { filterAndRender, displayStatus } from "./uiRender.js";
 import { subscribeMobStatusDocs, subscribeMobLocations, initializeAuth } from "./server.js";
 
 const EXPANSION_MAP = { 1: "新生", 2: "蒼天", 3: "紅蓮", 4: "漆黒", 5: "暁月", 6: "黄金" };
@@ -121,57 +121,45 @@ function startRealtime() {
   unsubscribes.forEach(fn => fn && fn());
   unsubscribes = [];
 
-  // Subscribe mob_status docs
-  const unsubStatus = subscribeMobStatusDocs(mobStatusDataMap => {
-    const current = getState().mobs;
-    const map = new Map();
-    Object.values(mobStatusDataMap).forEach(docData => {
-      Object.entries(docData).forEach(([mobId, mobData]) => {
-        const mobNo = parseInt(mobId, 10);
-        map.set(mobNo, {
-          last_kill_time: mobData.last_kill_time?.seconds || 0,
-          prev_kill_time: mobData.prev_kill_time?.seconds || 0,
-          last_kill_memo: mobData.last_kill_memo || ""
-        });
-      });
-    });
-    const merged = current.map(m => {
-      const dyn = map.get(m.No);
-      return dyn ? { ...m, ...dyn } : m;
-    });
-    setMobs(merged);
-    filterAndRender();
-    displayStatus("LKT/Memoデータ更新完了。", "success");
-  });
-  unsubscribes.push(unsubStatus);
+// Subscribe mob_status docs
+const unsubStatus = subscribeMobStatusDocs(mobStatusDataMap => {
+  const current = getState().mobs;
+  const map = new Map();
+  Object.values(mobStatusDataMap).forEach(docData => {
+    Object.entries(docData).forEach(([mobId, mobData]) => {
+      const mobNo = parseInt(mobId, 10);
+      map.set(mobNo, {
+        last_kill_time: mobData.last_kill_time?.seconds || 0,
+        prev_kill_time: mobData.prev_kill_time?.seconds || 0,
+        last_kill_memo: mobData.last_kill_memo || ""
+      });
+    });
+  });
+  const merged = current.map(m => {
+    const dyn = map.get(m.No);
+    return dyn ? { ...m, ...dyn } : m;
+  });
+  setMobs(merged);
+  filterAndRender();
+  displayStatus("LKT/Memoデータ更新完了。", "success");
+});
+unsubscribes.push(unsubStatus);
 
-  // Subscribe mob_locations
-  const unsubLoc = subscribeMobLocations(locationsMap => {
-    const current = getState().mobs;
-    const merged = current.map(m => {
-      const dyn = locationsMap[m.No];
-      if (m.Rank === "S" && dyn) {
-        return { ...m, spawn_cull_status: dyn.points || {} };
-      }
-      return m;
-    });
-    setMobs(merged);
-    filterAndRender();
-    displayStatus("湧き潰しデータ更新完了。", "success");
-  });
-  unsubscribes.push(unsubLoc);
+// Subscribe mob_locations
+const unsubLoc = subscribeMobLocations(locationsMap => {
+  const current = getState().mobs;
+  const merged = current.map(m => {
+    const dyn = locationsMap[m.No];
+    if (m.Rank === "S" && dyn) {
+      return { ...m, spawn_cull_status: dyn.points || {} };
+    }
+    return m;
+  });
+  setMobs(merged);
+  filterAndRender();
+  displayStatus("湧き潰しデータ更新完了。", "success");
+});
+unsubscribes.push(unsubLoc);
 
-  progressInterval = setInterval(updateProgressBars, 10000);
-}
-
-async function setupApp() {
-  displayStatus("アプリを初期化中...", "loading");
-  await loadBaseMobData();
-  const uid = await initializeAuth();
-  setUserId(uid);
-  startRealtime();
-}
-
-// 🚨 修正1: 全てのエクスポートを整理
 export { setupApp, state, EXPANSION_MAP, getState, getMobByNo, setUserId, setBaseMobData, setMobs, setFilter, setOpenMobCardNo, 
          RANK_COLORS, PROGRESS_CLASSES, FILTER_TO_DATA_RANK_MAP, };
